@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/publication.dart';
 import '../detail/publication_detail_screen.dart';
+import '../trend/trend_analysis_screen.dart';
 import '../../state/search_provider.dart';
 import '../../widgets/error_view.dart';
 import '../../widgets/loading_view.dart';
@@ -39,6 +40,20 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 
+  Future<void> _openTrendAnalysis(
+    BuildContext context,
+    SearchProvider provider,
+  ) {
+    return Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => TrendAnalysisScreen(
+          topic: provider.currentTopic,
+          publications: provider.publications,
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -63,6 +78,17 @@ class _SearchScreenState extends State<SearchScreen> {
                   ),
                   const SizedBox(height: 20),
                   _SearchSummary(provider: provider),
+                  if (provider.publications.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      child: FilledButton.icon(
+                        onPressed: () => _openTrendAnalysis(context, provider),
+                        icon: const Icon(Icons.bar_chart_rounded),
+                        label: const Text('View Trend Analysis'),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   if (provider.isLoading)
                     const LoadingView(
