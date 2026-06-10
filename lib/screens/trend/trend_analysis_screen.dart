@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../models/publication.dart';
+import '../../state/influential_analyzer.dart';
 import '../../state/trend_analyzer.dart';
 import '../../widgets/trend_chart.dart';
+import '../influential/top_influential_papers_screen.dart';
 
 class TrendAnalysisScreen extends StatelessWidget {
   const TrendAnalysisScreen({
@@ -14,9 +16,23 @@ class TrendAnalysisScreen extends StatelessWidget {
   final String topic;
   final List<Publication> publications;
 
+  Future<void> _openInfluentialPapers(
+    BuildContext context,
+    List<Publication> papers,
+  ) {
+    return Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) =>
+            TopInfluentialPapersScreen(topic: topic, papers: papers),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final analysis = TrendAnalyzer.analyze(publications);
+    final topInfluential = InfluentialAnalyzer.topPapers(publications);
+    final previewPapers = topInfluential.take(3).toList(growable: false);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Trend Analysis')),
@@ -69,6 +85,55 @@ class TrendAnalysisScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 14),
                   TrendChart(points: analysis.points),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Top Influential Papers',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  if (previewPapers.isEmpty)
+                    Text(
+                      'No publication data to rank by citation count yet.',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    )
+                  else
+                    ...previewPapers.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final paper = entry.value;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Text(
+                          '${index + 1}. ${paper.title} (${paper.citationCount} citations)',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      );
+                    }),
+                  const SizedBox(height: 6),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: topInfluential.isEmpty
+                          ? null
+                          : () =>
+                                _openInfluentialPapers(context, topInfluential),
+                      icon: const Icon(Icons.leaderboard_outlined),
+                      label: const Text('View Full Ranking'),
+                    ),
+                  ),
                 ],
               ),
             ),
