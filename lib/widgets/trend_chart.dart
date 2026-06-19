@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+import '../core/theme/app_colors.dart';
 import '../models/trend_point.dart';
 
 class TrendChart extends StatelessWidget {
@@ -19,6 +20,10 @@ class TrendChart extends StatelessWidget {
         .reduce((left, right) => left > right ? left : right)
         .toDouble();
 
+    if (maxY == 0) return const _EmptyChart();
+
+    final interval = maxY <= 5 ? 1.0 : (maxY / 5).ceilToDouble();
+
     return SizedBox(
       height: 260,
       child: BarChart(
@@ -27,7 +32,11 @@ class TrendChart extends StatelessWidget {
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            horizontalInterval: 1,
+            horizontalInterval: interval,
+            getDrawingHorizontalLine: (_) => const FlLine(
+              color: AppColors.borderGlass,
+              strokeWidth: 1,
+            ),
           ),
           borderData: FlBorderData(show: false),
           barTouchData: BarTouchData(enabled: true),
@@ -42,7 +51,14 @@ class TrendChart extends StatelessWidget {
               sideTitles: SideTitles(
                 showTitles: true,
                 reservedSize: 28,
-                interval: 1,
+                interval: interval,
+                getTitlesWidget: (value, meta) => Text(
+                  meta.formattedValue,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ),
             ),
             bottomTitles: AxisTitles(
@@ -60,7 +76,7 @@ class TrendChart extends StatelessWidget {
                       '${points[index].year}',
                       style: const TextStyle(
                         fontSize: 10,
-                        color: Color(0xFF334155),
+                        color: AppColors.textSecondary,
                       ),
                     ),
                   );
@@ -80,7 +96,11 @@ class TrendChart extends StatelessWidget {
                     BarChartRodData(
                       toY: point.count.toDouble(),
                       width: 18,
-                      color: const Color(0xFF0F766E),
+                      gradient: const LinearGradient(
+                        colors: [AppColors.neonCyan, AppColors.neonLime],
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                      ),
                       borderRadius: const BorderRadius.vertical(
                         top: Radius.circular(6),
                       ),
@@ -101,18 +121,21 @@ class _EmptyChart extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 200,
+      height: 160,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(16),
+        color: AppColors.surfaceContainer,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.borderGlass),
       ),
-      child: Text(
-        'Not enough publication year data to draw a trend chart.',
+      child: const Text(
+        'Not enough publication year data\nto draw a trend chart.',
         textAlign: TextAlign.center,
-        style: Theme.of(
-          context,
-        ).textTheme.bodyMedium?.copyWith(color: const Color(0xFF64748B)),
+        style: TextStyle(
+          fontSize: 13,
+          color: AppColors.textSecondary,
+          height: 1.5,
+        ),
       ),
     );
   }

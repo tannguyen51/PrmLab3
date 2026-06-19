@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import 'core/theme/app_colors.dart';
 import 'screens/search/search_screen.dart';
 import 'services/openalex_service.dart';
 import 'services/publication_repository.dart';
@@ -32,10 +33,10 @@ class JournalTrendAnalyzerApp extends StatelessWidget {
         title: 'Journal Trend Analyzer',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF0E7490),
-            brightness: Brightness.light,
+            seedColor: const Color(0xFF22D3EE),
+            brightness: Brightness.dark,
           ),
-          scaffoldBackgroundColor: const Color(0xFFF3F7F8),
+          scaffoldBackgroundColor: AppColors.background,
           useMaterial3: true,
         ),
         home: const SearchScreen(),

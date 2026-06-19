@@ -34,6 +34,8 @@ class PublicationCard extends StatelessWidget {
             children: [
               Text(
                 publication.title,
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
                 style: Theme.of(
                   context,
                 ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),

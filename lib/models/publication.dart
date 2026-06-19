@@ -30,7 +30,7 @@ class Publication {
           ? (json['title'] as String).trim()
           : 'Untitled publication',
       publicationYear: json['publication_year'] as int?,
-      citationCount: json['cited_by_count'] as int? ?? 0,
+      citationCount: (json['cited_by_count'] as num?)?.toInt() ?? 0,
       journalName:
           (source?['display_name'] as String?)?.trim().isNotEmpty == true
           ? (source?['display_name'] as String).trim()
@@ -63,7 +63,7 @@ class Publication {
       return null;
     }
 
-    return trimmed.replaceFirst(RegExp(r'^https?://doi\\.org/'), '');
+    return trimmed.replaceFirst(RegExp(r'^https?://doi\.org/'), '');
   }
 
   static String? _decodeAbstract(Map<String, dynamic>? invertedIndex) {

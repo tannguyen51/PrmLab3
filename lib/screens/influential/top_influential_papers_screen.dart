@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../core/theme/app_colors.dart';
 import '../../models/publication.dart';
 import '../detail/publication_detail_screen.dart';
 
@@ -24,143 +25,351 @@ class TopInfluentialPapersScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Top Influential Papers')),
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Topic',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                      color: const Color(0xFF64748B),
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    topic,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 12),
-            if (papers.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
+      backgroundColor: AppColors.background,
+      appBar: const _DarkAppBar(title: 'Top Influential Papers'),
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+        children: [
+          // ── Topic banner ──────────────────────────────────────────────
+          _TopicBanner(topic: topic, count: papers.length),
+          const SizedBox(height: 20),
+
+          // ── Section header ────────────────────────────────────────────
+          const _SectionHeader(
+            label: 'Ranked by Citations',
+            accentColor: AppColors.goldBadge,
+          ),
+          const SizedBox(height: 12),
+
+          // ── Paper list ────────────────────────────────────────────────
+          if (papers.isEmpty)
+            _EmptyState()
+          else
+            ...papers.asMap().entries.map((entry) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: _RankedPaperCard(
+                  rank: entry.key + 1,
+                  paper: entry.value,
+                  onTap: () => _openDetail(context, entry.value),
                 ),
-                child: Text(
-                  'No papers available for influential ranking.',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              )
-            else
-              ...papers.asMap().entries.map((entry) {
-                final index = entry.key;
-                final paper = entry.value;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: _RankedPaperTile(
-                    rank: index + 1,
-                    publication: paper,
-                    onTap: () => _openDetail(context, paper),
-                  ),
-                );
-              }),
-          ],
-        ),
+              );
+            }),
+        ],
       ),
     );
   }
 }
 
-class _RankedPaperTile extends StatelessWidget {
-  const _RankedPaperTile({
+// ─── AppBar ───────────────────────────────────────────────────────────────────
+
+class _DarkAppBar extends StatelessWidget implements PreferredSizeWidget {
+  const _DarkAppBar({required this.title});
+
+  final String title;
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight + 1);
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        AppBar(
+          backgroundColor: AppColors.surface.withValues(alpha:0.85),
+          elevation: 0,
+          scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.transparent,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          title: Text(
+            title,
+            style: const TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+        Container(height: 1, color: AppColors.borderGlass),
+      ],
+    );
+  }
+}
+
+// ─── Topic Banner ─────────────────────────────────────────────────────────────
+
+class _TopicBanner extends StatelessWidget {
+  const _TopicBanner({required this.topic, required this.count});
+
+  final String topic;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha:0.03),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderGlassHigh),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.goldBadge.withValues(alpha:0.12),
+              border: Border.all(color: AppColors.goldBadge.withValues(alpha:0.3)),
+            ),
+            child: const Icon(
+              Icons.workspace_premium_outlined,
+              color: AppColors.goldBadge,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'TOPIC',
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.5,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  topic,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                    height: 1.2,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: AppColors.goldBadge.withValues(alpha:0.1),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: AppColors.goldBadge.withValues(alpha:0.25)),
+            ),
+            child: Column(
+              children: [
+                Text(
+                  '$count',
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.goldBadge,
+                  ),
+                ),
+                const Text(
+                  'papers',
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textSecondary,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Ranked Paper Card ────────────────────────────────────────────────────────
+
+class _RankedPaperCard extends StatelessWidget {
+  const _RankedPaperCard({
     required this.rank,
-    required this.publication,
+    required this.paper,
     required this.onTap,
   });
 
   final int rank;
-  final Publication publication;
+  final Publication paper;
   final VoidCallback onTap;
+
+  // Top 3 get progressively brighter rank ring colours
+  Color get _rankColor {
+    if (rank == 1) return AppColors.goldBadge;
+    if (rank == 2) return AppColors.purpleAccent;
+    if (rank == 3) return AppColors.neonLime;
+    return AppColors.neonCyan;
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    final rankColor = _rankColor;
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha:0.03),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.borderGlass),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(15),
+          child: Stack(
             children: [
-              Container(
-                width: 34,
-                height: 34,
-                alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                  color: Color(0xFF0F766E),
-                  shape: BoxShape.circle,
-                ),
-                child: Text(
-                  '$rank',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
+              // Left accent bar
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                child: Container(width: 3, color: rankColor),
               ),
-              const SizedBox(width: 12),
-              Expanded(
+              Padding(
+                padding: const EdgeInsets.fromLTRB(19, 14, 14, 14),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      publication.title,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                    // ── Rank badge + citation badge row ────────────────
+                    Row(
+                      children: [
+                        // Rank badge
+                        Container(
+                          width: 28,
+                          height: 28,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: rankColor.withValues(alpha:0.15),
+                            border: Border.all(
+                              color: rankColor.withValues(alpha:0.5),
+                              width: rank <= 3 ? 1.5 : 1,
+                            ),
+                          ),
+                          child: Text(
+                            '$rank',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: rankColor,
+                            ),
+                          ),
+                        ),
+                        const Spacer(),
+                        // Gold citation badge
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 9,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.goldBadge.withValues(alpha:0.1),
+                            borderRadius: BorderRadius.circular(999),
+                            border: Border.all(
+                              color: AppColors.goldBadge.withValues(alpha:0.3),
+                            ),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.star_rounded,
+                                color: AppColors.goldBadge,
+                                size: 12,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${paper.citationCount}',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.goldBadge,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 10),
+
+                    // ── Title ──────────────────────────────────────────
                     Text(
-                      publication.journalName,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: const Color(0xFF64748B),
+                      paper.title,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                        height: 1.4,
                       ),
                     ),
                     const SizedBox(height: 8),
+
+                    // ── Authors ────────────────────────────────────────
+                    if (paper.authorNames.isNotEmpty)
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.person_outline,
+                            color: AppColors.textSecondary,
+                            size: 13,
+                          ),
+                          const SizedBox(width: 5),
+                          Expanded(
+                            child: Text(
+                              paper.authorNames.length <= 3
+                                  ? paper.authorNames.join(', ')
+                                  : '${paper.authorNames.take(2).join(', ')}  +${paper.authorNames.length - 2} more',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    const SizedBox(height: 10),
+
+                    // ── Year + journal chips ───────────────────────────
                     Wrap(
-                      spacing: 10,
-                      runSpacing: 8,
+                      spacing: 8,
+                      runSpacing: 6,
                       children: [
-                        _MetaChip(
-                          icon: Icons.workspace_premium_outlined,
-                          label: '${publication.citationCount} citations',
-                        ),
-                        _MetaChip(
-                          icon: Icons.calendar_today_outlined,
-                          label:
-                              publication.publicationYear?.toString() ??
-                              'Unknown year',
-                        ),
+                        if (paper.publicationYear != null)
+                          _Chip(
+                            icon: Icons.calendar_today_outlined,
+                            iconColor: AppColors.neonCyan,
+                            label: '${paper.publicationYear}',
+                          ),
+                        if (paper.journalName.isNotEmpty &&
+                            paper.journalName != 'Unknown journal')
+                          _Chip(
+                            icon: Icons.menu_book_outlined,
+                            iconColor: AppColors.neonLime,
+                            label: paper.journalName,
+                            maxWidth: 220,
+                          ),
                       ],
                     ),
                   ],
@@ -174,30 +383,130 @@ class _RankedPaperTile extends StatelessWidget {
   }
 }
 
-class _MetaChip extends StatelessWidget {
-  const _MetaChip({required this.icon, required this.label});
+// ─── Small Chip ───────────────────────────────────────────────────────────────
+
+class _Chip extends StatelessWidget {
+  const _Chip({
+    required this.icon,
+    required this.iconColor,
+    required this.label,
+    this.maxWidth,
+  });
 
   final IconData icon;
+  final Color iconColor;
   final String label;
+  final double? maxWidth;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE6F4F1),
-        borderRadius: BorderRadius.circular(999),
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: maxWidth ?? double.infinity),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+        decoration: BoxDecoration(
+          color: AppColors.surfaceContainerHigh,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: AppColors.borderGlass),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 12, color: iconColor),
+            const SizedBox(width: 5),
+            Flexible(
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+    );
+  }
+}
+
+// ─── Section Header ───────────────────────────────────────────────────────────
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({
+    required this.label,
+    required this.accentColor,
+  });
+
+  final String label;
+  final Color accentColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Container(
+          width: 3,
+          height: 20,
+          decoration: BoxDecoration(
+            color: accentColor,
+            borderRadius: BorderRadius.circular(999),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ─── Empty State ──────────────────────────────────────────────────────────────
+
+class _EmptyState extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(32),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha:0.03),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.borderGlass),
+      ),
+      child: Column(
         children: [
-          Icon(icon, size: 14, color: const Color(0xFF0F766E)),
-          const SizedBox(width: 6),
-          Text(
-            label,
-            style: Theme.of(
-              context,
-            ).textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600),
+          Icon(
+            Icons.workspace_premium_outlined,
+            size: 44,
+            color: AppColors.goldBadge.withValues(alpha:0.4),
+          ),
+          const SizedBox(height: 14),
+          const Text(
+            'No papers available for influential ranking.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          const Text(
+            'Papers require citation data to be ranked.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              color: AppColors.textSecondary,
+            ),
           ),
         ],
       ),

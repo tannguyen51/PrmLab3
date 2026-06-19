@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Journal Trend Analyzer</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#b2f746",
+                        "surface-container-highest": "#323537",
+                        "surface-container-low": "#191c1e",
+                        "on-surface-variant": "#bbc9cd",
+                        "surface-container-lowest": "#0b0f10",
+                        "on-background": "#e0e3e5",
+                        "on-tertiary-fixed-variant": "#334f00",
+                        "inverse-primary": "#006877",
+                        "tertiary-container": "#93d420",
+                        "on-tertiary-fixed": "#121f00",
+                        "surface-dim": "#101415",
+                        "secondary-fixed-dim": "#d0bcff",
+                        "inverse-on-surface": "#2d3133",
+                        "on-error": "#690005",
+                        "primary": "#8aebff",
+                        "outline-variant": "#3c494c",
+                        "background": "#101415",
+                        "error-container": "#93000a",
+                        "on-primary": "#00363e",
+                        "on-primary-fixed": "#001f25",
+                        "on-secondary": "#3c0091",
+                        "tertiary-fixed-dim": "#98da27",
+                        "secondary-container": "#571bc1",
+                        "outline": "#859397",
+                        "on-tertiary": "#213600",
+                        "on-secondary-container": "#c4abff",
+                        "error": "#ffb4ab",
+                        "inverse-surface": "#e0e3e5",
+                        "on-surface": "#e0e3e5",
+                        "on-secondary-fixed": "#23005c",
+                        "on-secondary-fixed-variant": "#5516be",
+                        "surface-variant": "#323537",
+                        "on-primary-fixed-variant": "#004e5a",
+                        "on-error-container": "#ffdad6",
+                        "primary-container": "#22d3ee",
+                        "surface-tint": "#2fd9f4",
+                        "surface-container-high": "#272a2c",
+                        "secondary-fixed": "#e9ddff",
+                        "on-primary-container": "#005763",
+                        "tertiary": "#adf140",
+                        "on-tertiary-container": "#395800",
+                        "primary-fixed-dim": "#2fd9f4",
+                        "surface": "#101415",
+                        "surface-container": "#1d2022",
+                        "surface-bright": "#363a3b",
+                        "primary-fixed": "#a2eeff",
+                        "secondary": "#d0bcff",
+
+                        // Added custom colors for the prompt requirements while trying to stay within the design system's vibe
+                        "obsidian": "#060812",
+                        "navy-base": "#0B1026",
+                        "neon-cyan": "#22d3ee",
+                        "neon-lime": "#adf140",
+                        "gold-badge": "#FACC15"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "container-margin": "1.25rem",
+                        "section-gap": "2rem",
+                        "inline-gap": "0.75rem",
+                        "grid-gutter": "1rem",
+                        "stack-gap": "1rem"
+                    },
+                    "fontFamily": {
+                        "body-sm": ["Inter"],
+                        "label-md": ["Inter"],
+                        "headline-sm": ["Inter"],
+                        "body-lg": ["Inter"],
+                        "headline-md": ["Inter"],
+                        "label-sm": ["Inter"],
+                        "display-lg-mobile": ["Inter"],
+                        "body-md": ["Inter"],
+                        "display-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "body-sm": ["14px", { "lineHeight": "20px", "fontWeight": "400" }],
+                        "label-md": ["12px", { "lineHeight": "16px", "letterSpacing": "0.05em", "fontWeight": "600" }],
+                        "headline-sm": ["20px", { "lineHeight": "28px", "fontWeight": "600" }],
+                        "headline-sm-mobile": ["18px", { "lineHeight": "24px", "fontWeight": "600" }],
+                        "body-lg": ["18px", { "lineHeight": "28px", "fontWeight": "400" }],
+                        "headline-md": ["24px", { "lineHeight": "32px", "fontWeight": "600" }],
+                        "label-sm": ["10px", { "lineHeight": "12px", "letterSpacing": "0.08em", "fontWeight": "700" }],
+                        "display-lg-mobile": ["32px", { "lineHeight": "38px", "letterSpacing": "-0.02em", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "24px", "fontWeight": "400" }],
+                        "display-lg": ["40px", { "lineHeight": "48px", "letterSpacing": "-0.02em", "fontWeight": "700" }]
+                    },
+                    "backgroundImage": {
+                        'hero-gradient': 'linear-gradient(135deg, rgba(33, 28, 132, 0.8), rgba(79, 70, 229, 0.6), rgba(6, 182, 212, 0.4), rgba(16, 185, 129, 0.2))',
+                        'button-primary': 'linear-gradient(90deg, #2fd9f4, #adf140)'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #060812;
+            /* Obsidian */
+            color: #e0e3e5;
+        }
+
+        .glass-card {
+            background-color: rgba(255, 255, 255, 0.03);
+            /* ~8% fill per instructions, adjusted for darker obsidian */
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            /* ~16% white border */
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .glass-border {
+            border: 1px solid rgba(255, 255, 255, 0.16);
+        }
+
+        .glow-cyan {
+            filter: drop-shadow(0 0 15px rgba(34, 211, 238, 0.2));
+            /* neon-cyan glow */
+        }
+
+        .text-gradient {
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Animated Orbs */
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.5;
+            animation: float 20s infinite ease-in-out alternate;
+            z-index: 0;
+        }
+
+        .orb-1 {
+            width: 300px;
+            height: 300px;
+            background: #211C84;
+            top: -100px;
+            left: -100px;
+        }
+
+        .orb-2 {
+            width: 250px;
+            height: 250px;
+            background: #06B6D4;
+            bottom: -50px;
+            right: -50px;
+            animation-delay: -5s;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            50% {
+                transform: translate(50px, 30px) scale(1.1);
+            }
+
+            100% {
+                transform: translate(-30px, 50px) scale(0.9);
+            }
+        }
+
+        /* Hide scrollbar for chips */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+    <style>
+        body {
+            min-height: max(884px, 100dvh);
+        }
+    </style>
+</head>
+
+<body
+    class="font-body-md antialiased relative min-h-screen pb-24 selection:bg-primary-container selection:text-on-primary-container">
+    <!-- TopAppBar from JSON -->
+    <header
+        class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/20 flex justify-between items-center px-container-margin py-3">
+        <div class="flex items-center gap-inline-gap">
+            <span class="material-symbols-outlined text-primary" data-icon="biotech">biotech</span>
+            <h1 class="font-headline-sm-mobile text-headline-sm-mobile font-bold text-on-surface">Journal Trend Analyzer
+            </h1>
+        </div>
+        <button class="hover:bg-surface-variant/10 transition-colors p-2 rounded-full flex items-center justify-center">
+            <span class="material-symbols-outlined text-on-surface-variant" data-icon="settings">settings</span>
+        </button>
+    </header>
+    <main class="pt-24 px-container-margin max-w-7xl mx-auto relative z-10 flex flex-col gap-section-gap">
+        <!-- Hero Section -->
+        <section
+            class="relative w-full rounded-2xl overflow-hidden glass-card p-6 md:p-10 flex flex-col items-center text-center">
+            <!-- Background Orbs -->
+            <div class="orb orb-1"></div>
+            <div class="orb orb-2"></div>
+            <div class="relative z-10 w-full max-w-3xl flex flex-col gap-stack-gap items-center">
+                <h2
+                    class="font-display-lg-mobile text-display-lg-mobile md:font-display-lg md:text-display-lg font-bold bg-gradient-to-r from-primary-container to-tertiary-fixed text-gradient pb-2">
+                    Discover research trends instantly
+                </h2>
+                <p class="font-body-lg text-body-lg text-on-surface-variant max-w-2xl">
+                    Search OpenAlex to analyze papers, citations, journals, authors, and publication growth.
+                </p>
+                <!-- Search Input -->
+                <div class="w-full mt-6 relative glow-cyan">
+                    <div
+                        class="relative flex items-center w-full rounded-xl bg-[#0B1026] border border-white/10 focus-within:border-primary-container transition-colors duration-300 p-2 pl-4">
+                        <span class="material-symbols-outlined text-on-surface-variant mr-3">search</span>
+                        <input
+                            class="flex-1 bg-transparent border-none outline-none text-on-surface font-body-md placeholder:text-on-surface-variant/50 w-full"
+                            placeholder="Search keywords, authors, journals..." type="text" />
+                        <button
+                            class="ml-2 px-6 py-3 rounded-lg bg-button-primary text-on-primary font-label-md text-label-md uppercase tracking-wider flex items-center gap-2 shadow-[inset_0_0_8px_rgba(255,255,255,0.4)] hover:brightness-110 transition-all">
+                            <span>Search OpenAlex</span>
+                            <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+                        </button>
+                    </div>
+                </div>
+                <!-- Suggested Topics -->
+                <div class="w-full mt-6 flex flex-col gap-3 items-center">
+                    <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-widest">Trending
+                        Topics</span>
+                    <div class="flex flex-wrap justify-center gap-3">
+                        <button
+                            class="px-4 py-2 rounded-full border border-primary-container/50 bg-primary-container/10 text-primary-container font-label-md text-label-md hover:bg-primary-container/20 transition-colors backdrop-blur-sm">Data
+                            Science</button>
+                        <button
+                            class="px-4 py-2 rounded-full border border-white/10 bg-surface-elevated text-on-surface font-label-md text-label-md hover:border-primary-container/50 hover:text-primary-container transition-colors backdrop-blur-sm">AI</button>
+                        <button
+                            class="px-4 py-2 rounded-full border border-white/10 bg-surface-elevated text-on-surface font-label-md text-label-md hover:border-primary-container/50 hover:text-primary-container transition-colors backdrop-blur-sm">Cybersecurity</button>
+                        <button
+                            class="px-4 py-2 rounded-full border border-white/10 bg-surface-elevated text-on-surface font-label-md text-label-md hover:border-primary-container/50 hover:text-primary-container transition-colors backdrop-blur-sm">Blockchain</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Insight Cards -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-grid-gutter w-full">
+            <div class="glass-card rounded-xl p-5 flex flex-col gap-2 relative overflow-hidden group">
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-primary-container/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                </div>
+                <div class="flex items-center gap-3 mb-2">
+                    <div
+                        class="w-8 h-8 rounded-full bg-primary-container/20 flex items-center justify-center border border-primary-container/30">
+                        <span class="material-symbols-outlined text-primary-container text-[18px]"
+                            data-icon="category">category</span>
+                    </div>
+                    <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Top
+                        Category</span>
+                </div>
+                <span class="font-headline-md text-headline-md font-bold text-on-surface">Data Science</span>
+                <div class="h-1 w-12 bg-primary-container rounded-full mt-auto"></div>
+            </div>
+            <div class="glass-card rounded-xl p-5 flex flex-col gap-2 relative overflow-hidden group">
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-tertiary-fixed/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                </div>
+                <div class="flex items-center gap-3 mb-2">
+                    <div
+                        class="w-8 h-8 rounded-full bg-tertiary-fixed/20 flex items-center justify-center border border-tertiary-fixed/30">
+                        <span class="material-symbols-outlined text-tertiary-fixed text-[18px]"
+                            data-icon="library_books">library_books</span>
+                    </div>
+                    <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Total
+                        Papers</span>
+                </div>
+                <span class="font-headline-md text-headline-md font-bold text-on-surface">20k+</span>
+                <div class="h-1 w-12 bg-tertiary-fixed rounded-full mt-auto"></div>
+            </div>
+            <div class="glass-card rounded-xl p-5 flex flex-col gap-2 relative overflow-hidden group">
+                <div
+                    class="absolute inset-0 bg-gradient-to-br from-secondary-container/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+                </div>
+                <div class="flex items-center gap-3 mb-2">
+                    <div
+                        class="w-8 h-8 rounded-full bg-secondary-container/20 flex items-center justify-center border border-secondary-container/30">
+                        <span class="material-symbols-outlined text-secondary-container text-[18px]"
+                            data-icon="calendar_month">calendar_month</span>
+                    </div>
+                    <span class="font-label-sm text-label-sm text-on-surface-variant uppercase tracking-wider">Most
+                        Active Year</span>
+                </div>
+                <span class="font-headline-md text-headline-md font-bold text-on-surface">2019</span>
+                <div class="h-1 w-12 bg-secondary-container rounded-full mt-auto"></div>
+            </div>
+        </section>
+        <!-- Quick Actions (Bento Grid Style) -->
+        <section class="flex flex-col gap-stack-gap">
+            <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface flex items-center gap-2">
+                <span class="w-2 h-6 bg-primary-container rounded-sm inline-block"></span>
+                Quick Actions
+            </h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-grid-gutter">
+                <button
+                    class="glass-card rounded-xl p-5 flex flex-col items-center justify-center gap-4 hover:border-primary-container/50 transition-all group text-center aspect-square">
+                    <div
+                        class="w-12 h-12 rounded-full bg-surface-dim border border-white/10 flex items-center justify-center group-hover:scale-110 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.3)] transition-all duration-300">
+                        <span class="material-symbols-outlined text-primary-container"
+                            data-icon="trending_up">trending_up</span>
+                    </div>
+                    <span class="font-label-md text-label-md text-on-surface">Trend Analysis</span>
+                </button>
+                <button
+                    class="glass-card rounded-xl p-5 flex flex-col items-center justify-center gap-4 hover:border-tertiary-fixed/50 transition-all group text-center aspect-square">
+                    <div
+                        class="w-12 h-12 rounded-full bg-surface-dim border border-white/10 flex items-center justify-center group-hover:scale-110 group-hover:shadow-[0_0_15px_rgba(173,241,64,0.3)] transition-all duration-300">
+                        <span class="material-symbols-outlined text-tertiary-fixed"
+                            data-icon="dashboard">dashboard</span>
+                    </div>
+                    <span class="font-label-md text-label-md text-on-surface">Research Dashboard</span>
+                </button>
+                <button
+                    class="glass-card rounded-xl p-5 flex flex-col items-center justify-center gap-4 hover:border-secondary-container/50 transition-all group text-center aspect-square">
+                    <div
+                        class="w-12 h-12 rounded-full bg-surface-dim border border-white/10 flex items-center justify-center group-hover:scale-110 group-hover:shadow-[0_0_15px_rgba(87,27,193,0.3)] transition-all duration-300">
+                        <span class="material-symbols-outlined text-secondary-container"
+                            data-icon="workspace_premium">workspace_premium</span>
+                    </div>
+                    <span class="font-label-md text-label-md text-on-surface">Top Papers</span>
+                </button>
+                <button
+                    class="glass-card rounded-xl p-5 flex flex-col items-center justify-center gap-4 hover:border-primary-container/50 transition-all group text-center aspect-square">
+                    <div
+                        class="w-12 h-12 rounded-full bg-surface-dim border border-white/10 flex items-center justify-center group-hover:scale-110 group-hover:shadow-[0_0_15px_rgba(34,211,238,0.3)] transition-all duration-300">
+                        <span class="material-symbols-outlined text-primary-container" data-icon="groups">groups</span>
+                    </div>
+                    <span class="font-label-md text-label-md text-on-surface">Journals &amp; Authors</span>
+                </button>
+            </div>
+        </section>
+        <!-- Top Publications -->
+        <section class="flex flex-col gap-stack-gap mb-8">
+            <h3 class="font-headline-sm text-headline-sm font-bold text-on-surface flex items-center gap-2">
+                <span class="w-2 h-6 bg-tertiary-fixed rounded-sm inline-block"></span>
+                Trending Publications
+            </h3>
+            <div class="flex flex-col gap-4 w-full">
+                <!-- Pub Card 1 -->
+                <div
+                    class="glass-card rounded-xl p-5 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between border-l-2 border-l-primary-container hover:bg-surface-dim transition-colors cursor-pointer">
+                    <div class="flex flex-col gap-2 flex-1">
+                        <div class="flex items-center gap-2">
+                            <span
+                                class="font-label-sm text-label-sm px-2 py-1 rounded bg-surface-bright text-on-surface-variant uppercase">AI
+                                Models</span>
+                            <span class="font-label-sm text-label-sm text-on-surface-variant">2023</span>
+                        </div>
+                        <h4
+                            class="font-headline-sm-mobile text-headline-sm-mobile font-semibold text-on-surface line-clamp-2">
+                            Attention Is All You Need: A Retrospective Analysis of Transformer Architectures</h4>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">A. Vaswani, N.
+                            Shazeer, N. Parmar, J. Uszkoreit, L. Jones</p>
+                    </div>
+                    <div
+                        class="flex items-center gap-2 shrink-0 bg-[#FACC15]/10 px-3 py-1.5 rounded-full border border-[#FACC15]/20">
+                        <span class="material-symbols-outlined text-[#FACC15] text-[16px]" data-icon="star">star</span>
+                        <span class="font-label-md text-label-md text-[#FACC15]">450 Citations</span>
+                    </div>
+                </div>
+                <!-- Pub Card 2 -->
+                <div
+                    class="glass-card rounded-xl p-5 flex flex-col md:flex-row gap-4 items-start md:items-center justify-between border-l-2 border-l-tertiary-fixed hover:bg-surface-dim transition-colors cursor-pointer">
+                    <div class="flex flex-col gap-2 flex-1">
+                        <div class="flex items-center gap-2">
+                            <span
+                                class="font-label-sm text-label-sm px-2 py-1 rounded bg-surface-bright text-on-surface-variant uppercase">Cybersecurity</span>
+                            <span class="font-label-sm text-label-sm text-on-surface-variant">2022</span>
+                        </div>
+                        <h4
+                            class="font-headline-sm-mobile text-headline-sm-mobile font-semibold text-on-surface line-clamp-2">
+                            Zero-Trust Architectures in Distributed Cloud Environments</h4>
+                        <p class="font-body-sm text-body-sm text-on-surface-variant line-clamp-1">E. Kindervag, M.
+                            Smith, T. Jones</p>
+                    </div>
+                    <div
+                        class="flex items-center gap-2 shrink-0 bg-[#FACC15]/10 px-3 py-1.5 rounded-full border border-[#FACC15]/20">
+                        <span class="material-symbols-outlined text-[#FACC15] text-[16px]" data-icon="star">star</span>
+                        <span class="font-label-md text-label-md text-[#FACC15]">312 Citations</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+    <!-- BottomNavBar from JSON (Mobile Only) -->
+    <nav
+        class="md:hidden fixed bottom-4 left-4 right-4 z-50 bg-surface-container/60 backdrop-blur-md border border-white/10 rounded-xl shadow-lg shadow-primary/10 flex justify-around items-center px-6 py-4">
+        <!-- Active Tab: Home -->
+        <button
+            class="flex flex-col items-center justify-center text-primary drop-shadow-[0_0_15px_rgba(47,217,244,0.4)] scale-110 transition-transform duration-300">
+            <span class="material-symbols-outlined" data-icon="home" data-weight="fill"
+                style="font-variation-settings: 'FILL' 1;">home</span>
+            <span class="font-label-sm text-label-sm mt-1">Home</span>
+        </button>
+        <!-- Inactive Tabs -->
+        <button
+            class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary/80 transition-all">
+            <span class="material-symbols-outlined" data-icon="trending_up">trending_up</span>
+            <span class="font-label-sm text-label-sm mt-1">Trends</span>
+        </button>
+        <button
+            class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary/80 transition-all">
+            <span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+            <span class="font-label-sm text-label-sm mt-1">Dash</span>
+        </button>
+        <button
+            class="flex flex-col items-center justify-center text-on-surface-variant hover:text-primary/80 transition-all">
+            <span class="material-symbols-outlined" data-icon="more_horiz">more_horiz</span>
+            <span class="font-label-sm text-label-sm mt-1">More</span>
+        </button>
+    </nav>
+    <!-- Desktop Side/Top Nav placeholder to ensure padding parity if we had one, but JSON specified Top and Bottom. 
+         Hiding bottom nav on md screens as per generic responsive rules, though the prompt implies it's a mobile view 
+         mostly due to BottomNavBar. The TopApp bar stays. -->
+</body>
+
+</html>

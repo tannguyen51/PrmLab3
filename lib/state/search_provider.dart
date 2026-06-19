@@ -32,6 +32,8 @@ class SearchProvider extends ChangeNotifier {
       return;
     }
 
+    if (_isLoading) return;
+
     _currentTopic = topic.trim();
     if (_currentTopic.isEmpty) {
       _publications = const [];
