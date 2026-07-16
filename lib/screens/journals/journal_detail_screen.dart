@@ -88,6 +88,13 @@ class JournalDetailScreen extends StatelessWidget {
         ? null
         : journalPublications.first;
     final topAuthors = topAuthorsForPublications(journalPublications);
+    final totalCitations = journalPublications.fold<int>(
+      0,
+      (sum, publication) => sum + publication.citationCount,
+    );
+    final averageCitations = journalPublications.isEmpty
+        ? 0
+        : (totalCitations / journalPublications.length).round();
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -99,6 +106,14 @@ class JournalDetailScreen extends StatelessWidget {
             journal: journal,
             topic: topic,
             count: journalPublications.length,
+            totalCitations: totalCitations,
+            averageCitations: averageCitations,
+          ),
+          const SizedBox(height: 20),
+          _JournalStatsCard(
+            publicationCount: journalPublications.length,
+            totalCitations: totalCitations,
+            averageCitations: averageCitations,
           ),
           const SizedBox(height: 20),
           if (featuredPublication != null)
@@ -184,11 +199,15 @@ class _JournalHeader extends StatelessWidget {
     required this.journal,
     required this.topic,
     required this.count,
+    required this.totalCitations,
+    required this.averageCitations,
   });
 
   final JournalSummary journal;
   final String topic;
   final int count;
+  final int totalCitations;
+  final int averageCitations;
 
   @override
   Widget build(BuildContext context) {
@@ -263,8 +282,111 @@ class _JournalHeader extends StatelessWidget {
             children: [
               _Badge(label: '$count publications', color: AppColors.neonCyan),
               const SizedBox(width: 8),
-              _Badge(label: 'Topic view', color: AppColors.neonLime),
+              _Badge(
+                label: '$totalCitations citations',
+                color: AppColors.neonLime,
+              ),
+              const SizedBox(width: 8),
+              _Badge(
+                label: '$averageCitations avg citations',
+                color: const Color(0xFFFFC857),
+              ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _JournalStatsCard extends StatelessWidget {
+  const _JournalStatsCard({
+    required this.publicationCount,
+    required this.totalCitations,
+    required this.averageCitations,
+  });
+
+  final int publicationCount;
+  final int totalCitations;
+  final int averageCitations;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.borderGlassHigh),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: _StatTile(
+              label: 'Publications',
+              value: '$publicationCount',
+              color: AppColors.neonCyan,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: _StatTile(
+              label: 'Citations',
+              value: '$totalCitations',
+              color: AppColors.neonLime,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: _StatTile(
+              label: 'Avg / pub',
+              value: '$averageCitations',
+              color: const Color(0xFFFFC857),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatTile extends StatelessWidget {
+  const _StatTile({
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  final String label;
+  final String value;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 11,
+              color: AppColors.textSecondary,
+            ),
           ),
         ],
       ),

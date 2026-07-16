@@ -119,15 +119,27 @@ class _JournalsScreenState extends State<JournalsScreen> {
               _JournalSummaryCard(
                 count: journals.length,
                 topic: provider.currentTopic,
+                publications: provider.publications,
               ),
               const SizedBox(height: 16),
               ...journals.asMap().entries.map((entry) {
                 final journal = entry.value;
+                final journalPublications = provider.publications
+                    .where(
+                      (publication) => publication.journalName == journal.name,
+                    )
+                    .toList(growable: false);
+                final citationTotal = journalPublications.fold<int>(
+                  0,
+                  (sum, publication) => sum + publication.citationCount,
+                );
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
                   child: _JournalRow(
                     rank: entry.key + 1,
                     journal: journal,
+                    publicationCount: journalPublications.length,
+                    citationCount: citationTotal,
                     onTap: () {
                       analytics.logViewJournal(journal.name);
                       _openJournal(
@@ -149,10 +161,15 @@ class _JournalsScreenState extends State<JournalsScreen> {
 }
 
 class _JournalSummaryCard extends StatelessWidget {
-  const _JournalSummaryCard({required this.count, required this.topic});
+  const _JournalSummaryCard({
+    required this.count,
+    required this.topic,
+    required this.publications,
+  });
 
   final int count;
   final String topic;
+  final List<Publication> publications;
 
   @override
   Widget build(BuildContext context) {
@@ -206,6 +223,14 @@ class _JournalSummaryCard extends StatelessWidget {
                     height: 1.3,
                   ),
                 ),
+                const SizedBox(height: 10),
+                Text(
+                  '${publications.length} publications analyzed • ${publications.fold<int>(0, (sum, publication) => sum + publication.citationCount)} total citations',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
               ],
             ),
           ),
@@ -219,11 +244,15 @@ class _JournalRow extends StatelessWidget {
   const _JournalRow({
     required this.rank,
     required this.journal,
+    required this.publicationCount,
+    required this.citationCount,
     required this.onTap,
   });
 
   final int rank;
   final JournalSummary journal;
+  final int publicationCount;
+  final int citationCount;
   final VoidCallback onTap;
 
   @override
@@ -274,7 +303,7 @@ class _JournalRow extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    '${journal.publicationCount} papers',
+                    '$publicationCount papers • $citationCount citations',
                     style: const TextStyle(
                       fontSize: 13,
                       color: AppColors.textSecondary,
