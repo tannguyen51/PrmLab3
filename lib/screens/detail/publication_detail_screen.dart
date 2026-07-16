@@ -1,16 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../models/publication.dart';
+import '../../services/analytics_service.dart';
 
-class PublicationDetailScreen extends StatelessWidget {
+class PublicationDetailScreen extends StatefulWidget {
   const PublicationDetailScreen({super.key, required this.publication});
 
   final Publication publication;
 
+  @override
+  State<PublicationDetailScreen> createState() =>
+      _PublicationDetailScreenState();
+}
+
+class _PublicationDetailScreenState extends State<PublicationDetailScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final analytics = Provider.of<AnalyticsService>(context, listen: false);
+      analytics.logViewPublication(
+        widget.publication.title,
+        widget.publication.publicationYear,
+      );
+    });
+  }
+
   String _authorsDisplay() {
-    final names = publication.authorNames;
+    final names = widget.publication.authorNames;
     if (names.isEmpty) return 'Unknown authors';
     if (names.length <= 4) return names.join(', ');
     final shown = names.take(3).join(', ');
@@ -30,22 +50,19 @@ class PublicationDetailScreen extends StatelessWidget {
           children: [
             // ── Header: title + authors ───────────────────────────────
             _HeaderCard(
-              title: publication.title,
+              title: widget.publication.title,
               authorsDisplay: _authorsDisplay(),
             ),
             const SizedBox(height: 16),
 
             // ── Metadata chips: year / citations / journal ────────────
-            _MetadataSection(publication: publication),
+            _MetadataSection(publication: widget.publication),
             const SizedBox(height: 24),
 
             // ── DOI ───────────────────────────────────────────────────
-            const _SectionHeader(
-              label: 'DOI',
-              accentColor: AppColors.neonCyan,
-            ),
+            const _SectionHeader(label: 'DOI', accentColor: AppColors.neonCyan),
             const SizedBox(height: 10),
-            _DoiCard(doi: publication.doi),
+            _DoiCard(doi: widget.publication.doi),
             const SizedBox(height: 24),
 
             // ── Abstract ──────────────────────────────────────────────
@@ -54,7 +71,7 @@ class PublicationDetailScreen extends StatelessWidget {
               accentColor: AppColors.neonLime,
             ),
             const SizedBox(height: 10),
-            _AbstractCard(abstractText: publication.abstractText),
+            _AbstractCard(abstractText: widget.publication.abstractText),
           ],
         ),
       ),
@@ -77,7 +94,7 @@ class _DarkAppBar extends StatelessWidget implements PreferredSizeWidget {
     return Column(
       children: [
         AppBar(
-          backgroundColor: AppColors.surface.withValues(alpha:0.85),
+          backgroundColor: AppColors.surface.withValues(alpha: 0.85),
           elevation: 0,
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.transparent,
@@ -103,10 +120,7 @@ class _DarkAppBar extends StatelessWidget implements PreferredSizeWidget {
 // ─── Header Card ─────────────────────────────────────────────────────────────
 
 class _HeaderCard extends StatelessWidget {
-  const _HeaderCard({
-    required this.title,
-    required this.authorsDisplay,
-  });
+  const _HeaderCard({required this.title, required this.authorsDisplay});
 
   final String title;
   final String authorsDisplay;
@@ -117,7 +131,7 @@ class _HeaderCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha:0.03),
+        color: Colors.white.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.borderGlassHigh),
       ),
@@ -128,14 +142,20 @@ class _HeaderCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
-              color: AppColors.neonCyan.withValues(alpha:0.1),
+              color: AppColors.neonCyan.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: AppColors.neonCyan.withValues(alpha:0.3)),
+              border: Border.all(
+                color: AppColors.neonCyan.withValues(alpha: 0.3),
+              ),
             ),
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.biotech_outlined, color: AppColors.neonCyan, size: 13),
+                Icon(
+                  Icons.biotech_outlined,
+                  color: AppColors.neonCyan,
+                  size: 13,
+                ),
                 SizedBox(width: 5),
                 Text(
                   'PUBLICATION',
@@ -249,10 +269,10 @@ class _MetaChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bg = isGold
-        ? AppColors.goldBadge.withValues(alpha:0.1)
-        : Colors.white.withValues(alpha:0.04);
+        ? AppColors.goldBadge.withValues(alpha: 0.1)
+        : Colors.white.withValues(alpha: 0.04);
     final border = isGold
-        ? AppColors.goldBadge.withValues(alpha:0.3)
+        ? AppColors.goldBadge.withValues(alpha: 0.3)
         : AppColors.borderGlass;
     final textColor = isGold ? AppColors.goldBadge : AppColors.textPrimary;
 
@@ -305,7 +325,9 @@ class _DoiCard extends StatelessWidget {
           content: const Text('DOI copied to clipboard'),
           backgroundColor: AppColors.surfaceContainer,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
           duration: const Duration(seconds: 2),
         ),
       );
@@ -320,7 +342,7 @@ class _DoiCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha:0.03),
+        color: Colors.white.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.borderGlass),
       ),
@@ -331,8 +353,10 @@ class _DoiCard extends StatelessWidget {
             height: 32,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.neonCyan.withValues(alpha:0.12),
-              border: Border.all(color: AppColors.neonCyan.withValues(alpha:0.25)),
+              color: AppColors.neonCyan.withValues(alpha: 0.12),
+              border: Border.all(
+                color: AppColors.neonCyan.withValues(alpha: 0.25),
+              ),
             ),
             child: const Icon(
               Icons.link_outlined,
@@ -359,9 +383,11 @@ class _DoiCard extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
-                  color: AppColors.neonCyan.withValues(alpha:0.1),
+                  color: AppColors.neonCyan.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppColors.neonCyan.withValues(alpha:0.25)),
+                  border: Border.all(
+                    color: AppColors.neonCyan.withValues(alpha: 0.25),
+                  ),
                 ),
                 child: const Icon(
                   Icons.copy_outlined,
@@ -392,7 +418,7 @@ class _AbstractCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha:0.03),
+        color: Colors.white.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.borderGlass),
       ),
@@ -409,7 +435,7 @@ class _AbstractCard extends StatelessWidget {
               children: [
                 Icon(
                   Icons.info_outline,
-                  color: AppColors.textSecondary.withValues(alpha:0.5),
+                  color: AppColors.textSecondary.withValues(alpha: 0.5),
                   size: 16,
                 ),
                 const SizedBox(width: 8),
@@ -430,10 +456,7 @@ class _AbstractCard extends StatelessWidget {
 // ─── Section Header ───────────────────────────────────────────────────────────
 
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({
-    required this.label,
-    required this.accentColor,
-  });
+  const _SectionHeader({required this.label, required this.accentColor});
 
   final String label;
   final Color accentColor;

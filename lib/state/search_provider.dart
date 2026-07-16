@@ -1,13 +1,18 @@
 import 'package:flutter/foundation.dart';
 
 import '../models/publication.dart';
+import '../services/analytics_service.dart';
 import '../services/publication_repository.dart';
 
 class SearchProvider extends ChangeNotifier {
-  SearchProvider({PublicationRepository? repository})
-    : _repository = repository;
+  SearchProvider({
+    PublicationRepository? repository,
+    AnalyticsService? analyticsService,
+  }) : _repository = repository,
+       _analyticsService = analyticsService;
 
   PublicationRepository? _repository;
+  AnalyticsService? _analyticsService;
 
   bool _isLoading = false;
   String? _errorMessage;
@@ -22,6 +27,10 @@ class SearchProvider extends ChangeNotifier {
 
   set repository(PublicationRepository repository) {
     _repository = repository;
+  }
+
+  set analyticsService(AnalyticsService analyticsService) {
+    _analyticsService = analyticsService;
   }
 
   Future<void> search(String topic) async {
@@ -47,6 +56,7 @@ class SearchProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
+      await _analyticsService?.logSearchTopic(_currentTopic);
       _publications = await repository.searchByTopic(_currentTopic);
     } catch (error) {
       _publications = const [];
