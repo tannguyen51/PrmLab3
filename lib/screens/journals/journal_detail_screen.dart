@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../models/author_summary.dart';
 import '../../models/journal_summary.dart';
 import '../../models/publication.dart';
 import '../../widgets/publication_card.dart';
@@ -24,9 +25,69 @@ class JournalDetailScreen extends StatelessWidget {
         .toList(growable: false);
   }
 
+  static List<Publication> sortPublicationsByImpact(
+    List<Publication> publications,
+  ) {
+    return [...publications]..sort((left, right) {
+      final byCitations = right.citationCount.compareTo(left.citationCount);
+      if (byCitations != 0) {
+        return byCitations;
+      }
+
+      final byYear = (right.publicationYear ?? 0).compareTo(
+        left.publicationYear ?? 0,
+      );
+      if (byYear != 0) {
+        return byYear;
+      }
+
+      return left.title.toLowerCase().compareTo(right.title.toLowerCase());
+    });
+  }
+
+  static List<AuthorSummary> topAuthorsForPublications(
+    List<Publication> publications, {
+    int limit = 5,
+  }) {
+    final counts = <String, int>{};
+
+    for (final publication in publications) {
+      for (final author in publication.authorNames) {
+        final normalized = author.trim();
+        if (normalized.isEmpty) {
+          continue;
+        }
+        counts[normalized] = (counts[normalized] ?? 0) + 1;
+      }
+    }
+
+    final authors =
+        counts.entries
+            .map(
+              (entry) =>
+                  AuthorSummary(name: entry.key, publicationCount: entry.value),
+            )
+            .toList(growable: false)
+          ..sort((left, right) {
+            final byCount = right.publicationCount.compareTo(
+              left.publicationCount,
+            );
+            if (byCount != 0) {
+              return byCount;
+            }
+            return left.name.compareTo(right.name);
+          });
+
+    return authors.take(limit).toList(growable: false);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final journalPublications = _journalPublications;
+    final journalPublications = sortPublicationsByImpact(_journalPublications);
+    final featuredPublication = journalPublications.isEmpty
+        ? null
+        : journalPublications.first;
+    final topAuthors = topAuthorsForPublications(journalPublications);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -40,6 +101,18 @@ class JournalDetailScreen extends StatelessWidget {
             count: journalPublications.length,
           ),
           const SizedBox(height: 20),
+          if (featuredPublication != null)
+            _ImpactSummaryCard(publication: featuredPublication),
+          const SizedBox(height: 20),
+          if (topAuthors.isNotEmpty) ...[
+            const _SectionHeader(
+              label: 'Top authors',
+              accentColor: AppColors.neonLime,
+            ),
+            const SizedBox(height: 12),
+            _TopAuthorsCard(authors: topAuthors),
+            const SizedBox(height: 20),
+          ],
           const _SectionHeader(
             label: 'Publications',
             accentColor: AppColors.neonCyan,
@@ -220,6 +293,153 @@ class _Badge extends StatelessWidget {
           fontWeight: FontWeight.w700,
           color: color,
         ),
+      ),
+    );
+  }
+}
+
+class _ImpactSummaryCard extends StatelessWidget {
+  const _ImpactSummaryCard({required this.publication});
+
+  final Publication publication;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.borderGlassHigh),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.neonLime.withValues(alpha: 0.14),
+            ),
+            child: const Icon(
+              Icons.trending_up_rounded,
+              color: AppColors.neonLime,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Most cited paper',
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1.1,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  publication.title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.textPrimary,
+                    height: 1.35,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '${publication.citationCount} citations • ${publication.publicationYear ?? 'Unknown year'}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TopAuthorsCard extends StatelessWidget {
+  const _TopAuthorsCard({required this.authors});
+
+  final List<AuthorSummary> authors;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.borderGlassHigh),
+      ),
+      child: Column(
+        children: [
+          for (var index = 0; index < authors.length; index++)
+            Padding(
+              padding: EdgeInsets.only(
+                bottom: index == authors.length - 1 ? 0 : 10,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.neonCyan.withValues(alpha: 0.14),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      '${index + 1}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.neonCyan,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          authors[index].name,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${authors[index].publicationCount} papers in this journal',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
       ),
     );
   }

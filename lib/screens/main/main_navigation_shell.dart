@@ -3,8 +3,9 @@ import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../services/firebase_auth_service.dart';
-import '../search/search_screen.dart';
 import '../journals/journals_screen.dart';
+import '../keywords/keywords_screen.dart';
+import '../search/search_screen.dart';
 
 class MainNavigationShell extends StatefulWidget {
   const MainNavigationShell({super.key});
@@ -21,11 +22,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
     final pages = <Widget>[
       const SearchScreen(),
       const JournalsScreen(),
-      const _ComingSoonPage(
-        title: 'Keywords',
-        subtitle: 'Keyword analytics will be added in the next slice.',
-        icon: Icons.label_outline,
-      ),
+      const KeywordsScreen(),
       const _ProfilePage(),
     ];
 
@@ -163,70 +160,6 @@ class _ProfilePage extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _ComingSoonPage extends StatelessWidget {
-  const _ComingSoonPage({
-    required this.title,
-    required this.subtitle,
-    required this.icon,
-  });
-
-  final String title;
-  final String subtitle;
-  final IconData icon;
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.03),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.borderGlassHigh),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.neonCyan.withValues(alpha: 0.14),
-                  border: Border.all(
-                    color: AppColors.neonCyan.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Icon(icon, color: AppColors.neonCyan, size: 28),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                subtitle,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: AppColors.textSecondary,
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );
