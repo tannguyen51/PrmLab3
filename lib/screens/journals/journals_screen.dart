@@ -5,12 +5,38 @@ import '../../core/theme/app_colors.dart';
 import '../../models/journal_summary.dart';
 import '../../models/publication.dart';
 import '../../services/analytics_service.dart';
+import '../../services/profile_firebase_service.dart';
 import '../../state/contributors_analyzer.dart';
 import '../../state/search_provider.dart';
 import 'journal_detail_screen.dart';
 
-class JournalsScreen extends StatelessWidget {
+class JournalsScreen extends StatefulWidget {
   const JournalsScreen({super.key});
+
+  @override
+  State<JournalsScreen> createState() => _JournalsScreenState();
+}
+
+class _JournalsScreenState extends State<JournalsScreen> {
+  Map<String, String> _remoteConfigValues = const {};
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _loadRemoteConfig();
+    });
+  }
+
+  Future<void> _loadRemoteConfig() async {
+    final profileService = context.read<ProfileFirebaseService>();
+    final values = await profileService.loadRemoteConfigValues();
+    if (!mounted) return;
+    setState(() {
+      _remoteConfigValues = values;
+    });
+  }
 
   Future<void> _openJournal(
     BuildContext context,
@@ -33,8 +59,13 @@ class JournalsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final provider = context.watch<SearchProvider>();
     final analytics = context.read<AnalyticsService>();
+    final journalLimit = ProfileFirebaseService.parseConfiguredLimit(
+      _remoteConfigValues['max_journals'],
+      4,
+    );
     final journals = ContributorsAnalyzer.analyze(
       provider.publications,
+      limit: journalLimit,
     ).topJournals;
 
     return SafeArea(

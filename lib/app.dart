@@ -7,6 +7,7 @@ import 'screens/main/main_navigation_shell.dart';
 import 'services/analytics_service.dart';
 import 'services/firebase_auth_service.dart';
 import 'services/openalex_service.dart';
+import 'services/profile_firebase_service.dart';
 import 'services/publication_repository.dart';
 import 'state/search_provider.dart';
 import 'viewmodels/analytics_view_model.dart';
@@ -21,6 +22,7 @@ class JournalTrendAnalyzerApp extends StatelessWidget {
         Provider(create: (_) => const OpenAlexService()),
         Provider(create: (_) => FirebaseAuthService()),
         Provider(create: (_) => AnalyticsService()),
+        Provider(create: (_) => ProfileFirebaseService()),
         ChangeNotifierProvider(create: (_) => AnalyticsViewModel()),
         ProxyProvider<OpenAlexService, PublicationRepository>(
           update: (_, service, previousRepository) =>

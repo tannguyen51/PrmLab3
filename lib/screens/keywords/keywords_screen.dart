@@ -4,20 +4,51 @@ import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../models/keyword_summary.dart';
 import '../../services/analytics_service.dart';
+import '../../services/profile_firebase_service.dart';
 import '../../state/keyword_analyzer.dart';
 import '../../state/search_provider.dart';
 import 'keyword_detail_screen.dart';
 
-class KeywordsScreen extends StatelessWidget {
+class KeywordsScreen extends StatefulWidget {
   const KeywordsScreen({super.key});
+
+  @override
+  State<KeywordsScreen> createState() => _KeywordsScreenState();
+}
+
+class _KeywordsScreenState extends State<KeywordsScreen> {
+  Map<String, String> _remoteConfigValues = const {};
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _loadRemoteConfig();
+    });
+  }
+
+  Future<void> _loadRemoteConfig() async {
+    final profileService = context.read<ProfileFirebaseService>();
+    final values = await profileService.loadRemoteConfigValues();
+    if (!mounted) return;
+    setState(() {
+      _remoteConfigValues = values;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<SearchProvider>();
     final analytics = context.read<AnalyticsService>();
+    final keywordLimit = ProfileFirebaseService.parseConfiguredLimit(
+      _remoteConfigValues['max_keywords'],
+      4,
+    );
     final keywords = KeywordAnalyzer.analyze(
       provider.publications,
       topic: provider.currentTopic,
+      limit: keywordLimit,
     );
 
     return SafeArea(
