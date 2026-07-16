@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../models/author_summary.dart';
 import '../../models/keyword_summary.dart';
 import '../../models/publication.dart';
 import '../../state/trend_analyzer.dart';
@@ -49,6 +50,64 @@ class KeywordDetailScreen extends StatelessWidget {
 
   List<Publication> get matchedPublications {
     return sortPublicationsByRelevance(publications, keyword.keyword);
+  }
+
+  static List<AuthorSummary> topAuthorsForPublications(
+    List<Publication> publications, {
+    int limit = 5,
+  }) {
+    final counts = <String, int>{};
+
+    for (final publication in publications) {
+      for (final author in publication.authorNames) {
+        final normalized = author.trim();
+        if (normalized.isEmpty) {
+          continue;
+        }
+        counts[normalized] = (counts[normalized] ?? 0) + 1;
+      }
+    }
+
+    final authors =
+        counts.entries
+            .map(
+              (entry) =>
+                  AuthorSummary(name: entry.key, publicationCount: entry.value),
+            )
+            .toList(growable: false)
+          ..sort((left, right) {
+            final byCount = right.publicationCount.compareTo(
+              left.publicationCount,
+            );
+            if (byCount != 0) {
+              return byCount;
+            }
+            return left.name.compareTo(right.name);
+          });
+
+    return authors.take(limit).toList(growable: false);
+  }
+
+  static List<String> relatedJournals(List<Publication> publications) {
+    final counts = <String, int>{};
+    for (final publication in publications) {
+      final journal = publication.journalName.trim();
+      if (journal.isEmpty || journal == 'Unknown journal') {
+        continue;
+      }
+      counts[journal] = (counts[journal] ?? 0) + 1;
+    }
+
+    final sortedEntries = counts.entries.toList()
+      ..sort((left, right) {
+        final byCount = right.value.compareTo(left.value);
+        if (byCount != 0) {
+          return byCount;
+        }
+        return left.key.compareTo(right.key);
+      });
+
+    return sortedEntries.map((entry) => entry.key).toList(growable: false);
   }
 
   static int _relevanceScore(
@@ -128,6 +187,8 @@ class KeywordDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final matchedPublications = this.matchedPublications;
     final trend = TrendAnalyzer.analyze(matchedPublications);
+    final topAuthors = topAuthorsForPublications(matchedPublications);
+    final relatedJournalsList = relatedJournals(matchedPublications);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -147,7 +208,25 @@ class KeywordDetailScreen extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           _TrendCard(trend: trend),
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
+          if (relatedJournalsList.isNotEmpty) ...[
+            const _SectionHeader(
+              label: 'Related Journals',
+              accentColor: AppColors.neonLime,
+            ),
+            const SizedBox(height: 12),
+            _RelatedJournalsCard(journals: relatedJournalsList),
+            const SizedBox(height: 20),
+          ],
+          if (topAuthors.isNotEmpty) ...[
+            _SectionHeader(
+              label: 'Top Contributing Authors',
+              accentColor: const Color(0xFFFFC857),
+            ),
+            const SizedBox(height: 12),
+            _TopAuthorsCard(authors: topAuthors),
+            const SizedBox(height: 20),
+          ],
           const _SectionHeader(
             label: 'Related Publications',
             accentColor: AppColors.neonLime,
@@ -348,6 +427,139 @@ class _TrendCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           TrendChart(points: trend.points),
+        ],
+      ),
+    );
+  }
+}
+
+class _RelatedJournalsCard extends StatelessWidget {
+  const _RelatedJournalsCard({required this.journals});
+
+  final List<String> journals;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.borderGlassHigh),
+      ),
+      child: Column(
+        children: [
+          for (var index = 0; index < journals.length; index++)
+            Padding(
+              padding: EdgeInsets.only(
+                bottom: index == journals.length - 1 ? 0 : 10,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 30,
+                    height: 30,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.neonLime.withValues(alpha: 0.14),
+                    ),
+                    child: Text(
+                      '${index + 1}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.neonLime,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      journals[index],
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _TopAuthorsCard extends StatelessWidget {
+  const _TopAuthorsCard({required this.authors});
+
+  final List<AuthorSummary> authors;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.borderGlassHigh),
+      ),
+      child: Column(
+        children: [
+          for (var index = 0; index < authors.length; index++)
+            Padding(
+              padding: EdgeInsets.only(
+                bottom: index == authors.length - 1 ? 0 : 10,
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 30,
+                    height: 30,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.neonCyan.withValues(alpha: 0.14),
+                    ),
+                    child: Text(
+                      '${index + 1}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.neonCyan,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          authors[index].name,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          '${authors[index].publicationCount} publications',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
         ],
       ),
     );

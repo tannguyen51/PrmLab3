@@ -278,15 +278,15 @@ class _JournalHeader extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          Row(
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
               _Badge(label: '$count publications', color: AppColors.neonCyan),
-              const SizedBox(width: 8),
               _Badge(
                 label: '$totalCitations citations',
                 color: AppColors.neonLime,
               ),
-              const SizedBox(width: 8),
               _Badge(
                 label: '$averageCitations avg citations',
                 color: const Color(0xFFFFC857),
@@ -372,12 +372,15 @@ class _StatTile extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(
-            value,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: color,
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: color,
+              ),
             ),
           ),
           const SizedBox(height: 4),
@@ -410,6 +413,8 @@ class _Badge extends StatelessWidget {
       ),
       child: Text(
         label,
+        softWrap: true,
+        textAlign: TextAlign.center,
         style: TextStyle(
           fontSize: 12,
           fontWeight: FontWeight.w700,

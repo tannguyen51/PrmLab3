@@ -67,10 +67,36 @@ void main() {
       expect(keywords.contains('and'), isFalse);
     });
 
-    test('ranks related publications by relevance before display', () {
+    test('filters out generic function words such as these has all also', () {
       final publications = [
         const Publication(
           id: '4',
+          title: 'Deep learning for cybersecurity systems',
+          publicationYear: 2024,
+          citationCount: 15,
+          journalName: 'IEEE Security',
+          authorNames: ['Frank Zhao'],
+          doi: null,
+          abstractText:
+              'These methods have all been tested in a secure environment and also compared with baseline models.',
+        ),
+      ];
+
+      final result = KeywordAnalyzer.analyze(publications, limit: 10);
+      final keywords = result.map((entry) => entry.keyword).toSet();
+
+      expect(keywords.contains('these'), isFalse);
+      expect(keywords.contains('has'), isFalse);
+      expect(keywords.contains('all'), isFalse);
+      expect(keywords.contains('also'), isFalse);
+      expect(keywords.contains('learning'), isTrue);
+      expect(keywords.contains('cybersecurity'), isTrue);
+    });
+
+    test('ranks related publications by relevance before display', () {
+      final publications = [
+        const Publication(
+          id: '5',
           title: 'Learning methods for students',
           publicationYear: 2023,
           citationCount: 10,

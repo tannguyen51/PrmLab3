@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import '../models/keyword_summary.dart';
 import '../models/publication.dart';
 
@@ -12,47 +14,130 @@ class KeywordAnalyzer {
     final counts = <String, int>{};
     final publicationMatches = <String, int>{};
     final stopWords = <String>{
-      'the',
-      'and',
-      'for',
-      'with',
-      'from',
-      'that',
-      'this',
-      'have',
-      'their',
-      'into',
-      'than',
-      'were',
-      'will',
-      'your',
+      'a',
       'about',
+      'across',
+      'after',
+      'all',
       'also',
+      'an',
+      'and',
+      'any',
+      'are',
+      'as',
+      'at',
+      'be',
+      'been',
+      'before',
+      'between',
+      'but',
+      'by',
+      'can',
+      'could',
+      'did',
+      'do',
+      'does',
+      'each',
+      'few',
+      'for',
+      'from',
+      'get',
+      'got',
+      'has',
+      'have',
+      'having',
+      'here',
+      'how',
+      'however',
+      'in',
+      'into',
+      'is',
+      'it',
+      'its',
+      'just',
+      'many',
+      'may',
+      'more',
+      'most',
+      'much',
+      'must',
+      'of',
+      'on',
+      'or',
+      'other',
+      'our',
+      'out',
+      'over',
+      'same',
+      'should',
+      'some',
+      'such',
+      'than',
+      'that',
+      'the',
+      'their',
+      'them',
+      'there',
+      'these',
+      'they',
+      'this',
+      'those',
+      'through',
+      'to',
+      'under',
       'using',
       'used',
-      'over',
-      'under',
-      'through',
-      'within',
-      'across',
-      'between',
-      'without',
-      'during',
-      'after',
-      'before',
-      'other',
-      'these',
-      'those',
-      'been',
-      'more',
       'very',
-      'same',
-      'such',
+      'was',
+      'were',
+      'what',
       'when',
       'where',
       'which',
       'while',
-      'what',
+      'will',
+      'with',
+      'without',
+      'would',
+      'your',
+    };
+
+    final genericTerms = <String>{
+      'analysis',
+      'analyses',
+      'application',
+      'applications',
+      'approach',
+      'approaches',
+      'article',
+      'articles',
+      'based',
+      'case',
+      'cases',
+      'compared',
+      'comparison',
+      'developed',
+      'development',
+      'method',
+      'methods',
+      'paper',
+      'papers',
+      'problem',
+      'problems',
+      'proposed',
+      'result',
+      'results',
+      'review',
+      'reviews',
+      'showed',
+      'study',
+      'studies',
+      'survey',
+      'surveys',
+      'technique',
+      'techniques',
+      'work',
+      'works',
     };
 
     final domainTerms = <String>{
@@ -114,6 +199,10 @@ class KeywordAnalyzer {
             continue;
           }
 
+          if (genericTerms.contains(token)) {
+            continue;
+          }
+
           if (!domainTerms.contains(token) && !topicTokens.contains(token)) {
             if (!RegExp(r'^[a-z]{3,}$').hasMatch(token)) {
               continue;
@@ -137,26 +226,75 @@ class KeywordAnalyzer {
       }
     }
 
+    final rawKeywords = counts.entries
+        .where((entry) => publicationMatches[entry.key] != null)
+        .map(
+          (entry) => KeywordSummary(
+            keyword: entry.key,
+            publicationCount: publicationMatches[entry.key] ?? 0,
+          ),
+        )
+        .toList(growable: false);
+
+    // Require stronger evidence for a keyword to be considered "highly specific".
+    final minPubMatches = publications.length >= 4 ? 3 : 2;
+    final docFrequency = publicationMatches;
+    final totalDocs = publications.length;
+
     final keywords =
-        counts.entries
-            .where((entry) => publicationMatches[entry.key] != null)
-            .map(
-              (entry) => KeywordSummary(
-                keyword: entry.key,
-                publicationCount: publicationMatches[entry.key] ?? 0,
-              ),
-            )
+        rawKeywords
+            .where((k) {
+              final token = k.keyword;
+              final pubMatches = docFrequency[token] ?? 0;
+
+              // Always allow explicit domain terms or topic tokens.
+              if (domainTerms.contains(token) || topicTokens.contains(token)) {
+                return true;
+              }
+
+              // Require the token to appear in at least `minPubMatches` publications.
+              if (pubMatches < minPubMatches) {
+                return false;
+              }
+
+              // Short tokens must be domain acronyms; otherwise require length >= 4.
+              if (token.length < 4) {
+                return false;
+              }
+
+              // Require a minimum aggregated weight to avoid noisy terms.
+              if ((counts[token] ?? 0) < 4) {
+                return false;
+              }
+
+              return true;
+            })
             .toList(growable: false)
           ..sort((left, right) {
+            final leftToken = left.keyword;
+            final rightToken = right.keyword;
+            final leftMatches = docFrequency[leftToken] ?? 0;
+            final rightMatches = docFrequency[rightToken] ?? 0;
+            final leftWeight = counts[leftToken] ?? 0;
+            final rightWeight = counts[rightToken] ?? 0;
+
+            // Compute an IDF-style factor: rare enough to matter, but not so rare as to be noise.
+            final leftIdf = math.log(1 + totalDocs / (leftMatches + 1));
+            final rightIdf = math.log(1 + totalDocs / (rightMatches + 1));
+            final leftScore = leftWeight * leftIdf;
+            final rightScore = rightWeight * rightIdf;
+
+            if (leftScore != rightScore) {
+              return rightScore.compareTo(leftScore);
+            }
+
             final byCount = right.publicationCount.compareTo(
               left.publicationCount,
             );
             if (byCount != 0) {
               return byCount;
             }
-            final byWeight = (counts[right.keyword] ?? 0).compareTo(
-              counts[left.keyword] ?? 0,
-            );
+            final byWeight = rightWeight.compareTo(leftWeight);
             if (byWeight != 0) {
               return byWeight;
             }

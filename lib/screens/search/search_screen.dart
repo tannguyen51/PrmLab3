@@ -108,7 +108,7 @@ class _SearchScreenState extends State<SearchScreen> {
                 ? () async {}
                 : () => provider.search(provider.currentTopic),
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 140),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 56),
               children: [
                 _HeroCard(
                   controller: _topicController,
@@ -146,22 +146,14 @@ class _SearchScreenState extends State<SearchScreen> {
               ],
             ),
           ),
-          bottomNavigationBar: _FloatingBottomNav(
-            onTrendTap: provider.publications.isNotEmpty
-                ? () => _openTrend(provider)
-                : null,
-            onDashboardTap: provider.publications.isNotEmpty
-                ? () => _openDashboard(provider)
-                : null,
-            onMoreTap: provider.publications.isNotEmpty
-                ? () => _openTopPapers(provider)
-                : null,
-          ),
+          // Floating bottom nav removed — primary navigation is shown inline on Home
         );
       },
     );
   }
 }
+
+// Compact inline navigation removed; Quick Actions provides primary shortcuts.
 
 // ─── AppBar ──────────────────────────────────────────────────────────────────
 
@@ -174,13 +166,17 @@ class _StitchAppBar extends StatelessWidget implements PreferredSizeWidget {
     return Column(
       children: [
         AppBar(
-          backgroundColor: AppColors.surface.withValues(alpha:0.85),
+          backgroundColor: AppColors.surface.withValues(alpha: 0.85),
           elevation: 0,
           scrolledUnderElevation: 0,
           surfaceTintColor: Colors.transparent,
           leading: const Padding(
             padding: EdgeInsets.all(14),
-            child: Icon(Icons.biotech_outlined, color: AppColors.neonCyan, size: 22),
+            child: Icon(
+              Icons.biotech_outlined,
+              color: AppColors.neonCyan,
+              size: 22,
+            ),
           ),
           title: const Text(
             'Journal Trend Analyzer',
@@ -218,7 +214,7 @@ class _HeroCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha:0.03),
+        color: Colors.white.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.borderGlass),
       ),
@@ -235,7 +231,7 @@ class _HeroCard extends StatelessWidget {
                 height: 220,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFF211C84).withValues(alpha:0.45),
+                  color: const Color(0xFF211C84).withValues(alpha: 0.45),
                 ),
               ),
             ),
@@ -248,7 +244,7 @@ class _HeroCard extends StatelessWidget {
                 height: 180,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: const Color(0xFF06B6D4).withValues(alpha:0.35),
+                  color: const Color(0xFF06B6D4).withValues(alpha: 0.35),
                 ),
               ),
             ),
@@ -309,7 +305,9 @@ class _HeroCard extends StatelessWidget {
                           decoration: InputDecoration(
                             hintText: 'Search keywords, authors, journals...',
                             hintStyle: TextStyle(
-                              color: AppColors.textSecondary.withValues(alpha:0.55),
+                              color: AppColors.textSecondary.withValues(
+                                alpha: 0.55,
+                              ),
                               fontSize: 14,
                             ),
                             prefixIcon: const Icon(
@@ -333,7 +331,7 @@ class _HeroCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.neonCyan.withValues(alpha:0.22),
+                              color: AppColors.neonCyan.withValues(alpha: 0.22),
                               blurRadius: 14,
                               offset: const Offset(0, 4),
                             ),
@@ -379,7 +377,11 @@ class _HeroCard extends StatelessWidget {
                           children: [
                             Expanded(child: searchInput),
                             const SizedBox(width: 12),
-                            SizedBox(width: 180, height: 52, child: searchButton),
+                            SizedBox(
+                              width: 180,
+                              height: 52,
+                              child: searchButton,
+                            ),
                           ],
                         );
                       }
@@ -411,10 +413,8 @@ class _HeroCard extends StatelessWidget {
                     alignment: WrapAlignment.center,
                     children: _chips
                         .map(
-                          (t) => _TopicChip(
-                            label: t,
-                            onTap: () => onChipTap(t),
-                          ),
+                          (t) =>
+                              _TopicChip(label: t, onTap: () => onChipTap(t)),
                         )
                         .toList(),
                   ),
@@ -441,9 +441,9 @@ class _TopicChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: AppColors.neonCyan.withValues(alpha:0.1),
+          color: AppColors.neonCyan.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: AppColors.neonCyan.withValues(alpha:0.4)),
+          border: Border.all(color: AppColors.neonCyan.withValues(alpha: 0.4)),
         ),
         child: Text(
           label,
@@ -472,8 +472,9 @@ class _InsightCardsRow extends StatelessWidget {
     final count = provider.publications.length;
     int? mostActiveYear;
     if (provider.publications.isNotEmpty) {
-      mostActiveYear =
-          TrendAnalyzer.analyze(provider.publications).mostActiveYear;
+      mostActiveYear = TrendAnalyzer.analyze(
+        provider.publications,
+      ).mostActiveYear;
     }
 
     return Row(
@@ -532,7 +533,7 @@ class _InsightCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha:0.03),
+        color: Colors.white.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.borderGlass),
       ),
@@ -544,8 +545,8 @@ class _InsightCard extends StatelessWidget {
             height: 32,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: iconColor.withValues(alpha:0.15),
-              border: Border.all(color: iconColor.withValues(alpha:0.3)),
+              color: iconColor.withValues(alpha: 0.15),
+              border: Border.all(color: iconColor.withValues(alpha: 0.3)),
             ),
             child: Icon(icon, color: iconColor, size: 16),
           ),
@@ -622,12 +623,25 @@ class _QuickActionsSection extends StatelessWidget {
           itemBuilder: (context, index) {
             const items = [
               (Icons.trending_up, AppColors.neonCyan, 'Trend Analysis'),
-              (Icons.dashboard_outlined, AppColors.neonLime, 'Research Dashboard'),
-              (Icons.workspace_premium_outlined, AppColors.purpleAccent, 'Top Papers'),
+              (
+                Icons.dashboard_outlined,
+                AppColors.neonLime,
+                'Research Dashboard',
+              ),
+              (
+                Icons.workspace_premium_outlined,
+                AppColors.purpleAccent,
+                'Top Papers',
+              ),
               (Icons.groups_outlined, AppColors.neonCyan, 'Journals & Authors'),
             ];
             final (icon, color, label) = items[index];
-            final callbacks = [onTrendTap, onDashboardTap, onTopPapersTap, onContributorsTap];
+            final callbacks = [
+              onTrendTap,
+              onDashboardTap,
+              onTopPapersTap,
+              onContributorsTap,
+            ];
             return _QuickActionButton(
               icon: icon,
               iconColor: color,
@@ -665,7 +679,7 @@ class _QuickActionButton extends StatelessWidget {
         onTap: enabled ? onTap : null,
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha:0.03),
+            color: Colors.white.withValues(alpha: 0.03),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppColors.borderGlass),
           ),
@@ -707,10 +721,7 @@ class _QuickActionButton extends StatelessWidget {
 // ─── Publications Preview ─────────────────────────────────────────────────────
 
 class _PublicationsPreview extends StatelessWidget {
-  const _PublicationsPreview({
-    required this.publications,
-    required this.onTap,
-  });
+  const _PublicationsPreview({required this.publications, required this.onTap});
 
   final List<Publication> publications;
   final void Function(Publication) onTap;
@@ -761,7 +772,7 @@ class _PublicationPreviewCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha:0.03),
+          color: Colors.white.withValues(alpha: 0.03),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: AppColors.borderGlass),
         ),
@@ -778,114 +789,114 @@ class _PublicationPreviewCard extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.fromLTRB(17, 14, 14, 14),
                 child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Year + journal
-            Row(
-              children: [
-                if (publication.publicationYear != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 3,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Year + journal
+                    Row(
+                      children: [
+                        if (publication.publicationYear != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.surfaceBright,
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Text(
+                              '${publication.publicationYear}',
+                              style: const TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textSecondary,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            publication.journalName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              color: AppColors.textSecondary,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceBright,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      '${publication.publicationYear}',
+                    const SizedBox(height: 8),
+                    // Title
+                    Text(
+                      publication.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textSecondary,
-                        letterSpacing: 0.5,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                        height: 1.35,
                       ),
                     ),
-                  ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    publication.journalName,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 11,
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            // Title
-            Text(
-              publication.title,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: AppColors.textPrimary,
-                height: 1.35,
-              ),
-            ),
-            const SizedBox(height: 5),
-            // Authors
-            Text(
-              publication.authorsLabel,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 12,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 10),
-            // Citation badge
-            Align(
-              alignment: Alignment.centerRight,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.goldBadge.withValues(alpha:0.1),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(
-                    color: AppColors.goldBadge.withValues(alpha:0.3),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.star_rounded,
-                      color: AppColors.goldBadge,
-                      size: 13,
-                    ),
-                    const SizedBox(width: 4),
+                    const SizedBox(height: 5),
+                    // Authors
                     Text(
-                      '${publication.citationCount} Citations',
+                      publication.authorsLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.goldBadge,
+                        fontSize: 12,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // Citation badge
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.goldBadge.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(
+                            color: AppColors.goldBadge.withValues(alpha: 0.3),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.star_rounded,
+                              color: AppColors.goldBadge,
+                              size: 13,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${publication.citationCount} Citations',
+                              style: const TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.goldBadge,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-            ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
-    ),
-  );
+    );
   }
 }
 
@@ -912,10 +923,7 @@ class _LoadingSection extends StatelessWidget {
           Text(
             'Loading publications from OpenAlex…',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: AppColors.textSecondary,
-              fontSize: 14,
-            ),
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
           ),
         ],
       ),
@@ -934,9 +942,9 @@ class _ErrorSection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.red.withValues(alpha:0.08),
+        color: Colors.red.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.red.withValues(alpha:0.2)),
+        border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -975,7 +983,7 @@ class _EmptySection extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(32),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha:0.03),
+        color: Colors.white.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: AppColors.borderGlass),
       ),
@@ -1015,118 +1023,7 @@ class _EmptySection extends StatelessWidget {
   }
 }
 
-// ─── Floating Bottom Nav ──────────────────────────────────────────────────────
-
-class _FloatingBottomNav extends StatelessWidget {
-  const _FloatingBottomNav({
-    required this.onTrendTap,
-    required this.onDashboardTap,
-    required this.onMoreTap,
-  });
-
-  final VoidCallback? onTrendTap;
-  final VoidCallback? onDashboardTap;
-  final VoidCallback? onMoreTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        child: Container(
-          height: 62,
-          decoration: BoxDecoration(
-            color: AppColors.surfaceContainer.withValues(alpha:0.88),
-            borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: AppColors.borderGlassHigh),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.neonCyan.withValues(alpha:0.07),
-                blurRadius: 20,
-                offset: const Offset(0, -4),
-              ),
-            ],
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _NavItem(
-                icon: Icons.home_rounded,
-                label: 'Home',
-                isActive: true,
-                onTap: null,
-              ),
-              _NavItem(
-                icon: Icons.trending_up,
-                label: 'Trends',
-                isActive: false,
-                onTap: onTrendTap,
-              ),
-              _NavItem(
-                icon: Icons.dashboard_outlined,
-                label: 'Dash',
-                isActive: false,
-                onTap: onDashboardTap,
-              ),
-              _NavItem(
-                icon: Icons.more_horiz,
-                label: 'More',
-                isActive: false,
-                onTap: onMoreTap,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NavItem extends StatelessWidget {
-  const _NavItem({
-    required this.icon,
-    required this.label,
-    required this.isActive,
-    required this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final bool isActive;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isActive ? AppColors.neonCyan : AppColors.textSecondary;
-    final enabled = onTap != null;
-    return Opacity(
-      opacity: enabled ? 1.0 : 0.38,
-      child: GestureDetector(
-      onTap: onTap,
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: color, size: 22),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w600,
-                color: color,
-                letterSpacing: 0.3,
-              ),
-            ),
-          ],
-        ),
-      ),
-      ),
-    );
-  }
-}
+// Floating bottom nav removed; compact inline navigation is used on Home.
 
 // ─── Shared Section Header ────────────────────────────────────────────────────
 

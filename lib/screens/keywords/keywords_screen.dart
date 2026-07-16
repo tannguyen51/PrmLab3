@@ -103,6 +103,8 @@ class _KeywordsScreenState extends State<KeywordsScreen> {
                 topic: provider.currentTopic,
               ),
               const SizedBox(height: 16),
+              _FrequencySnapshotCard(keywords: keywords),
+              const SizedBox(height: 16),
               ...keywords.map((keyword) {
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
@@ -189,9 +191,109 @@ class _KeywordSummaryCard extends StatelessWidget {
                     height: 1.3,
                   ),
                 ),
+                const SizedBox(height: 8),
+                Text(
+                  'Focused on recurring research terms and domain-relevant concepts.',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: AppColors.textSecondary,
+                    height: 1.4,
+                  ),
+                ),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FrequencySnapshotCard extends StatelessWidget {
+  const _FrequencySnapshotCard({required this.keywords});
+
+  final List<KeywordSummary> keywords;
+
+  @override
+  Widget build(BuildContext context) {
+    if (keywords.isEmpty) {
+      return const SizedBox.shrink();
+    }
+
+    final topKeywords = keywords.take(4).toList(growable: false);
+    final maxCount = topKeywords
+        .map((keyword) => keyword.publicationCount)
+        .reduce((left, right) => left > right ? left : right);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderGlassHigh),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'Frequency snapshot',
+            style: TextStyle(
+              fontSize: 12,
+              letterSpacing: 1.2,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 10),
+          ...topKeywords.map((keyword) {
+            final ratio = maxCount <= 0
+                ? 0.0
+                : keyword.publicationCount / maxCount;
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          keyword.keyword,
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        '${keyword.publicationCount}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.neonLime,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(999),
+                    child: LinearProgressIndicator(
+                      value: ratio,
+                      minHeight: 8,
+                      backgroundColor: AppColors.borderGlassHigh,
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                        AppColors.neonCyan,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
         ],
       ),
     );
