@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../../core/theme/app_colors.dart';
+import '../../services/analytics_service.dart';
 import '../../services/firebase_auth_service.dart';
 import '../../services/profile_firebase_service.dart';
 import '../../state/search_provider.dart';
@@ -183,6 +184,15 @@ class _ProfilePageState extends State<_ProfilePage> {
         _reportStatus = result.message;
         _reportUrl = result.url;
       });
+
+      if (result.success) {
+        final analytics = context.read<AnalyticsService>();
+        await analytics.logExportPdf(
+          searchProvider.currentTopic.isEmpty
+              ? 'current session'
+              : searchProvider.currentTopic,
+        );
+      }
     } catch (error) {
       if (!mounted) return;
       setState(() {

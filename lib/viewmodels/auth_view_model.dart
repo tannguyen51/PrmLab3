@@ -28,6 +28,10 @@ class AuthViewModel extends ChangeNotifier {
     try {
       final user = await _authService.signInWithGoogle();
       if (user != null) {
+        await _analyticsService?.setUserContext(
+          userId: user.uid,
+          provider: 'google',
+        );
         await _analyticsService?.logLogin();
       }
     } catch (error) {
