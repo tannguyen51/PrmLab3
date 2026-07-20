@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../models/keyword_summary.dart';
+import '../../models/publication.dart';
 import '../../services/analytics_service.dart';
 import '../../services/profile_firebase_service.dart';
 import '../../state/keyword_analyzer.dart';
@@ -104,6 +105,23 @@ class _KeywordsScreenState extends State<KeywordsScreen> {
               ),
               const SizedBox(height: 16),
               _FrequencySnapshotCard(keywords: keywords),
+              const SizedBox(height: 16),
+              _TrendingKeywordsSection(
+                publications: provider.publications,
+                topic: provider.currentTopic,
+                onKeywordTap: (keyword) {
+                  analytics.logViewKeyword(keyword.keyword);
+                  Navigator.of(context).push(
+                    MaterialPageRoute<void>(
+                      builder: (_) => KeywordDetailScreen(
+                        keyword: keyword,
+                        topic: provider.currentTopic,
+                        publications: provider.publications,
+                      ),
+                    ),
+                  );
+                },
+              ),
               const SizedBox(height: 16),
               ...keywords.map((keyword) {
                 return Padding(
@@ -413,6 +431,148 @@ class _EmptyState extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TrendingKeywordsSection extends StatelessWidget {
+  const _TrendingKeywordsSection({
+    required this.publications,
+    required this.topic,
+    required this.onKeywordTap,
+  });
+
+  final List<Publication> publications;
+  final String topic;
+  final void Function(KeywordSummary) onKeywordTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final trending = KeywordAnalyzer.analyzeTrending(
+      publications,
+      topic: topic,
+      limit: 5,
+    );
+
+    if (trending.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Container(
+              width: 4,
+              height: 22,
+              decoration: BoxDecoration(
+                color: const Color(0xFFFF7A59),
+                borderRadius: BorderRadius.circular(999),
+              ),
+            ),
+            const SizedBox(width: 10),
+            const Icon(Icons.trending_up, color: Color(0xFFFF7A59), size: 18),
+            const SizedBox(width: 6),
+            const Text(
+              'Trending Keywords',
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: const Color(0xFFFF7A59).withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: const Color(0xFFFF7A59).withValues(alpha: 0.2),
+            ),
+          ),
+          child: Column(
+            children: [
+              for (var i = 0; i < trending.length; i++)
+                Padding(
+                  padding: EdgeInsets.only(
+                    bottom: i == trending.length - 1 ? 0 : 10,
+                  ),
+                  child: _TrendingKeywordRow(
+                    keyword: trending[i],
+                    onTap: () => onKeywordTap(trending[i]),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TrendingKeywordRow extends StatelessWidget {
+  const _TrendingKeywordRow({
+    required this.keyword,
+    required this.onTap,
+  });
+
+  final KeywordSummary keyword;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFFF7A59).withValues(alpha: 0.14),
+              ),
+              child: const Icon(
+                Icons.trending_up,
+                color: Color(0xFFFF7A59),
+                size: 16,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    keyword.keyword,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    '${keyword.publicationCount} recent publications',
+                    style: const TextStyle(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: AppColors.textSecondary),
+          ],
+        ),
       ),
     );
   }

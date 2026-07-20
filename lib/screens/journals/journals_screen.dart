@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -121,6 +122,8 @@ class _JournalsScreenState extends State<JournalsScreen> {
                 topic: provider.currentTopic,
                 publications: provider.publications,
               ),
+              const SizedBox(height: 16),
+              _JournalContributionChart(journals: journals),
               const SizedBox(height: 16),
               ...journals.asMap().entries.map((entry) {
                 final journal = entry.value;
@@ -317,6 +320,150 @@ class _JournalRow extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class _JournalContributionChart extends StatelessWidget {
+  const _JournalContributionChart({required this.journals});
+
+  final List<JournalSummary> journals;
+
+  @override
+  Widget build(BuildContext context) {
+    if (journals.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.03),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: AppColors.borderGlassHigh),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 4,
+                height: 22,
+                decoration: BoxDecoration(
+                  color: AppColors.neonCyan,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+              const SizedBox(width: 10),
+              const Text(
+                'Contribution by Journal',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SizedBox(
+            height: 200,
+            child: Row(
+              children: [
+                Expanded(
+                  child: PieChart(
+                    PieChartData(
+                      sectionsSpace: 2,
+                      centerSpaceRadius: 32,
+                      sections: _buildSections(),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: _buildLegend(),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<PieChartSectionData> _buildSections() {
+    final colors = [
+      AppColors.neonCyan,
+      AppColors.neonLime,
+      const Color(0xFFFF7A59),
+      const Color(0xFFD0BCFF),
+      const Color(0xFFFACC15),
+      const Color(0xFF7DD3FC),
+      AppColors.purpleAccent,
+    ];
+
+    return journals.take(7).toList().asMap().entries.map((entry) {
+      final total = journals.fold<int>(0, (s, j) => s + j.publicationCount);
+      final percentage = total > 0
+          ? (entry.value.publicationCount / total * 100).toStringAsFixed(0)
+          : '0';
+      return PieChartSectionData(
+        color: colors[entry.key % colors.length],
+        value: entry.value.publicationCount.toDouble(),
+        title: '$percentage%',
+        radius: 48,
+        titleStyle: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: Colors.black,
+        ),
+      );
+    }).toList();
+  }
+
+  List<Widget> _buildLegend() {
+    final colors = [
+      AppColors.neonCyan,
+      AppColors.neonLime,
+      const Color(0xFFFF7A59),
+      const Color(0xFFD0BCFF),
+      const Color(0xFFFACC15),
+      const Color(0xFF7DD3FC),
+      AppColors.purpleAccent,
+    ];
+
+    return journals.take(7).toList().asMap().entries.map((entry) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: colors[entry.key % colors.length],
+              ),
+            ),
+            const SizedBox(width: 6),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 120),
+              child: Text(
+                entry.value.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 11,
+                  color: AppColors.textSecondary,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }).toList();
   }
 }
 

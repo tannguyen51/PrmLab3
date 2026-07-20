@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../models/publication.dart';
@@ -378,6 +379,31 @@ class _DoiCard extends StatelessWidget {
           ),
           if (hasDoi) ...[
             const SizedBox(width: 8),
+            // Open in browser
+            GestureDetector(
+              onTap: () async {
+                final uri = Uri.parse('https://doi.org/$doi');
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri, mode: LaunchMode.externalApplication);
+                }
+              },
+              child: Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: AppColors.neonCyan.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: AppColors.neonCyan.withValues(alpha: 0.25),
+                  ),
+                ),
+                child: const Icon(
+                  Icons.open_in_new,
+                  color: AppColors.neonCyan,
+                  size: 15,
+                ),
+              ),
+            ),
+            const SizedBox(width: 6),
             GestureDetector(
               onTap: () => _copyToClipboard(context),
               child: Container(

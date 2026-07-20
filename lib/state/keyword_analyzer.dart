@@ -304,6 +304,95 @@ class KeywordAnalyzer {
     return keywords.take(limit).toList(growable: false);
   }
 
+  /// Analyzes which keywords are trending (growing in frequency over time).
+  /// Returns keywords sorted by a trending score based on recent vs. older publication concentration.
+  static List<KeywordSummary> analyzeTrending(
+    List<Publication> publications, {
+    int limit = 10,
+    String? topic,
+  }) {
+    if (publications.length < 3) return const [];
+
+    // Find the most recent publication year
+    final maxYear = publications
+        .map((p) => p.publicationYear)
+        .whereType<int>()
+        .reduce((a, b) => a > b ? a : b);
+    final recentThreshold = maxYear - 2; // last 3 years
+
+    // Split publications into recent and older
+    final recentPubs = <Publication>[];
+    final olderPubs = <Publication>[];
+    for (final pub in publications) {
+      final year = pub.publicationYear;
+      if (year != null && year >= recentThreshold) {
+        recentPubs.add(pub);
+      } else if (year != null) {
+        olderPubs.add(pub);
+      }
+    }
+
+    if (recentPubs.isEmpty || olderPubs.isEmpty) return const [];
+
+    // Count keyword occurrences in each group
+    final recentCounts = <String, int>{};
+    final olderCounts = <String, int>{};
+
+    void countTokens(List<String> tokens, Map<String, int> counts) {
+      for (final token in tokens) {
+        if (token.length < 2) continue;
+        counts[token] = (counts[token] ?? 0) + 1;
+      }
+    }
+
+    for (final pub in recentPubs) {
+      countTokens(_extractTokens(pub.title), recentCounts);
+      if (pub.abstractText != null) {
+        countTokens(_extractTokens(pub.abstractText!), recentCounts);
+      }
+    }
+
+    for (final pub in olderPubs) {
+      countTokens(_extractTokens(pub.title), olderCounts);
+      if (pub.abstractText != null) {
+        countTokens(_extractTokens(pub.abstractText!), olderCounts);
+      }
+    }
+
+    // Compute trending score: growth ratio with smoothing
+    final scores = <String, double>{};
+    final allTokens = <String>{}
+      ..addAll(recentCounts.keys)
+      ..addAll(olderCounts.keys);
+
+    for (final token in allTokens) {
+      final recent = (recentCounts[token] ?? 0).toDouble();
+      final older = (olderCounts[token] ?? 0).toDouble();
+      final recentRatio = recent / recentPubs.length;
+      final olderRatio = older / olderPubs.length;
+
+      // Trending score: relative growth rate
+      if (recentRatio > 0 && olderRatio >= 0) {
+        scores[token] = olderRatio > 0
+            ? recentRatio / olderRatio
+            : recentRatio * 2; // new keyword = strong trend signal
+      }
+    }
+
+    // Filter and sort by trending score
+    final trending = scores.entries
+        .where((e) => e.value > 1.2) // at least 20% growth
+        .map((e) => KeywordSummary(
+              keyword: e.key,
+              publicationCount: recentCounts[e.key] ?? 0,
+              trendingScore: e.value,
+            ))
+        .toList(growable: false)
+      ..sort((a, b) => (b.trendingScore ?? 0).compareTo(a.trendingScore ?? 0));
+
+    return trending.take(limit).toList(growable: false);
+  }
+
   static List<String> _extractTokens(String text) {
     final normalized = text
         .toLowerCase()

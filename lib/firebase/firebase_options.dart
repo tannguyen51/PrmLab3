@@ -20,50 +20,50 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'REPLACE_WITH_YOUR_ANDROID_API_KEY',
-    appId: 'REPLACE_WITH_YOUR_ANDROID_APP_ID',
-    messagingSenderId: 'REPLACE_WITH_YOUR_SENDER_ID',
-    projectId: 'journal-trend-analyzer',
-    storageBucket: 'journal-trend-analyzer.firebasestorage.app',
+    apiKey: 'AIzaSyDa5rOtsu8KnN-zlOJzipodIhWJyLcJSRE',
+    appId: '1:910378654664:android:c6e77b81f4dc0eefe2fefd',
+    messagingSenderId: '910378654664',
+    projectId: 'prm393-7a248',
+    storageBucket: 'prm393-7a248.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'REPLACE_WITH_YOUR_IOS_API_KEY',
-    appId: 'REPLACE_WITH_YOUR_IOS_APP_ID',
-    messagingSenderId: 'REPLACE_WITH_YOUR_SENDER_ID',
-    projectId: 'journal-trend-analyzer',
-    storageBucket: 'journal-trend-analyzer.firebasestorage.app',
+    apiKey: 'AIzaSyDa5rOtsu8KnN-zlOJzipodIhWJyLcJSRE',
+    appId: '1:910378654664:ios:c6e77b81f4dc0eefe2fefd',
+    messagingSenderId: '910378654664',
+    projectId: 'prm393-7a248',
+    storageBucket: 'prm393-7a248.firebasestorage.app',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'REPLACE_WITH_YOUR_MACOS_API_KEY',
-    appId: 'REPLACE_WITH_YOUR_MACOS_APP_ID',
-    messagingSenderId: 'REPLACE_WITH_YOUR_SENDER_ID',
-    projectId: 'journal-trend-analyzer',
-    storageBucket: 'journal-trend-analyzer.firebasestorage.app',
+    apiKey: 'AIzaSyDa5rOtsu8KnN-zlOJzipodIhWJyLcJSRE',
+    appId: '1:910378654664:ios:c6e77b81f4dc0eefe2fefd',
+    messagingSenderId: '910378654664',
+    projectId: 'prm393-7a248',
+    storageBucket: 'prm393-7a248.firebasestorage.app',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'REPLACE_WITH_YOUR_WINDOWS_API_KEY',
-    appId: 'REPLACE_WITH_YOUR_WINDOWS_APP_ID',
-    messagingSenderId: 'REPLACE_WITH_YOUR_SENDER_ID',
-    projectId: 'journal-trend-analyzer',
-    storageBucket: 'journal-trend-analyzer.firebasestorage.app',
+    apiKey: 'AIzaSyDa5rOtsu8KnN-zlOJzipodIhWJyLcJSRE',
+    appId: '1:910378654664:android:c6e77b81f4dc0eefe2fefd',
+    messagingSenderId: '910378654664',
+    projectId: 'prm393-7a248',
+    storageBucket: 'prm393-7a248.firebasestorage.app',
   );
 
   static const FirebaseOptions linux = FirebaseOptions(
-    apiKey: 'REPLACE_WITH_YOUR_LINUX_API_KEY',
-    appId: 'REPLACE_WITH_YOUR_LINUX_APP_ID',
-    messagingSenderId: 'REPLACE_WITH_YOUR_SENDER_ID',
-    projectId: 'journal-trend-analyzer',
-    storageBucket: 'journal-trend-analyzer.firebasestorage.app',
+    apiKey: 'AIzaSyDa5rOtsu8KnN-zlOJzipodIhWJyLcJSRE',
+    appId: '1:910378654664:android:c6e77b81f4dc0eefe2fefd',
+    messagingSenderId: '910378654664',
+    projectId: 'prm393-7a248',
+    storageBucket: 'prm393-7a248.firebasestorage.app',
   );
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'REPLACE_WITH_YOUR_WEB_API_KEY',
-    appId: 'REPLACE_WITH_YOUR_WEB_APP_ID',
-    messagingSenderId: 'REPLACE_WITH_YOUR_SENDER_ID',
-    projectId: 'journal-trend-analyzer',
-    storageBucket: 'journal-trend-analyzer.firebasestorage.app',
+    apiKey: 'AIzaSyDa5rOtsu8KnN-zlOJzipodIhWJyLcJSRE',
+    appId: '1:910378654664:web:c6e77b81f4dc0eefe2fefd',
+    messagingSenderId: '910378654664',
+    projectId: 'prm393-7a248',
+    storageBucket: 'prm393-7a248.firebasestorage.app',
   );
 }

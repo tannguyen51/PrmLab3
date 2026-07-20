@@ -7,13 +7,11 @@ class FirebaseInitializer {
   static Future<void> initialize() async {
     try {
       if (Firebase.apps.isEmpty) {
-        if (defaultTargetPlatform == TargetPlatform.android ||
-            defaultTargetPlatform == TargetPlatform.iOS ||
-            defaultTargetPlatform == TargetPlatform.macOS ||
-            defaultTargetPlatform == TargetPlatform.windows ||
-            defaultTargetPlatform == TargetPlatform.linux) {
+        if (defaultTargetPlatform == TargetPlatform.android) {
+          // Android auto-reads from google-services.json
           await Firebase.initializeApp();
         } else {
+          // Other platforms need explicit options
           await Firebase.initializeApp(
             options: DefaultFirebaseOptions.currentPlatform,
           );

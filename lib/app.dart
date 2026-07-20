@@ -13,7 +13,14 @@ import 'state/search_provider.dart';
 import 'viewmodels/analytics_view_model.dart';
 
 class JournalTrendAnalyzerApp extends StatelessWidget {
-  const JournalTrendAnalyzerApp({super.key});
+  const JournalTrendAnalyzerApp({
+    super.key,
+    this.analyticsService,
+    this.profileService,
+  });
+
+  final AnalyticsService? analyticsService;
+  final ProfileFirebaseService? profileService;
 
   @override
   Widget build(BuildContext context) {
@@ -21,8 +28,12 @@ class JournalTrendAnalyzerApp extends StatelessWidget {
       providers: [
         Provider(create: (_) => const OpenAlexService()),
         Provider(create: (_) => FirebaseAuthService()),
-        Provider(create: (_) => AnalyticsService()),
-        Provider(create: (_) => ProfileFirebaseService()),
+        Provider<AnalyticsService>(
+          create: (_) => analyticsService ?? AnalyticsService(),
+        ),
+        ChangeNotifierProvider<ProfileFirebaseService>(
+          create: (_) => profileService ?? ProfileFirebaseService(),
+        ),
         ChangeNotifierProvider(create: (_) => AnalyticsViewModel()),
         ProxyProvider<OpenAlexService, PublicationRepository>(
           update: (_, service, previousRepository) =>

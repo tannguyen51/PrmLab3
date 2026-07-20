@@ -84,7 +84,6 @@ class _ProfilePageState extends State<_ProfilePage> {
   String _notificationsStatus = 'Loading notifications...';
   String? _reportUrl;
   Map<String, String> _remoteConfigValues = const {};
-  List<String> _notifications = const [];
 
   @override
   void initState() {
@@ -107,12 +106,10 @@ class _ProfilePageState extends State<_ProfilePage> {
     });
 
     try {
-      final notifications = await profileService.loadNotifications();
       final remoteConfigValues = await profileService.loadRemoteConfigValues();
 
       if (!mounted) return;
       setState(() {
-        _notifications = notifications;
         _notificationsStatus = 'Notifications ready';
         _remoteConfigValues = remoteConfigValues;
         _remoteConfigStatus = 'Remote Config ready';
@@ -173,10 +170,8 @@ class _ProfilePageState extends State<_ProfilePage> {
         ),
       );
 
-      await pdf.save();
-      final result = await profileService.exportAndUploadReport(
-        'Dashboard analytics export for ${searchProvider.currentTopic.isEmpty ? 'current session' : searchProvider.currentTopic}\n\nPublications: ${searchProvider.publications.length}',
-      );
+      final pdfBytes = await pdf.save();
+      final result = await profileService.exportPdfReport(pdfBytes);
 
       if (!mounted) return;
       setState(() {
@@ -233,6 +228,11 @@ class _ProfilePageState extends State<_ProfilePage> {
       topic: searchProvider.currentTopic,
       publications: searchProvider.publications,
     );
+    final notificationsFallback = [
+      'New trending research topic.',
+      'Highly cited publication alert.',
+      'Research trend updates.',
+    ];
 
     return SafeArea(
       child: ListView(
@@ -276,7 +276,9 @@ class _ProfilePageState extends State<_ProfilePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                for (final notification in _notifications)
+                for (final notification in profileService.notificationMessages.isEmpty
+                    ? notificationsFallback
+                    : profileService.notificationMessages)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Row(
@@ -390,6 +392,7 @@ class _ProfilePageState extends State<_ProfilePage> {
             width: double.infinity,
             child: ElevatedButton.icon(
               onPressed: () async {
+                await context.read<AnalyticsService>().logLogout();
                 await authService.signOut();
               },
               icon: const Icon(Icons.logout_rounded),

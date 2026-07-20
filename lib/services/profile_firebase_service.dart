@@ -7,6 +7,15 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 
+/// Top-level background FCM handler — must be a global function.
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  final notification = message.notification;
+  debugPrint(
+    'Background FCM: ${notification?.title ?? 'No title'}: ${notification?.body ?? 'No body'}',
+  );
+}
+
 class ProfileFirebaseResult {
   const ProfileFirebaseResult({
     required this.success,
@@ -19,7 +28,7 @@ class ProfileFirebaseResult {
   final String? url;
 }
 
-class ProfileFirebaseService {
+class ProfileFirebaseService extends ChangeNotifier {
   ProfileFirebaseService({
     FirebaseStorage? storage,
     FirebaseRemoteConfig? remoteConfig,
@@ -48,20 +57,55 @@ class ProfileFirebaseService {
   final FirebaseCrashlytics _crashlytics;
   final FirebaseMessaging _messaging;
 
-  Future<List<String>> loadNotifications() async {
+  final List<String> _notificationMessages = [];
+  String? _fcmToken;
+
+  List<String> get notificationMessages => List.unmodifiable(_notificationMessages);
+  String? get fcmToken => _fcmToken;
+
+  Future<void> setup() async {
     try {
+      // Register background message handler
+      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+
       final settings = await _messaging.requestPermission(
         alert: true,
         badge: true,
         sound: true,
       );
+
       if (settings.authorizationStatus == AuthorizationStatus.authorized ||
           settings.authorizationStatus == AuthorizationStatus.provisional) {
-        final token = await _messaging.getToken();
-        debugPrint('FCM token: $token');
+        _fcmToken = await _messaging.getToken();
+        debugPrint('FCM token: $_fcmToken');
       }
-    } catch (_) {}
 
+      // Listen for foreground messages
+      FirebaseMessaging.onMessage.listen(_handleMessage);
+
+      // Listen for token refresh
+      _messaging.onTokenRefresh.listen((token) {
+        _fcmToken = token;
+        debugPrint('FCM token refreshed: $token');
+      });
+    } catch (error) {
+      debugPrint('FCM setup failed: $error');
+    }
+  }
+
+  void _handleMessage(RemoteMessage message) {
+    final notification = message.notification;
+    final text = notification?.title != null
+        ? '${notification!.title}${notification.body != null ? ': ${notification.body}' : ''}'
+        : 'New notification received';
+    _notificationMessages.insert(0, text);
+    notifyListeners();
+  }
+
+  Future<List<String>> loadNotifications() async {
+    if (_notificationMessages.isNotEmpty) return _notificationMessages;
+
+    // Return sample notifications if no real ones arrived yet
     return const [
       'New trending research topic.',
       'Highly cited publication alert.',
@@ -96,6 +140,42 @@ class ProfileFirebaseService {
     };
   }
 
+  Future<ProfileFirebaseResult> exportPdfReport(List<int> pdfBytes) async {
+    try {
+      final directory = await getTemporaryDirectory();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final filePath = '${directory.path}/journal_trend_report_$timestamp.pdf';
+      final file = File(filePath);
+      await file.writeAsBytes(pdfBytes);
+
+      // Try Firebase Storage upload (requires Blaze plan — may fail)
+      String? uploadedUrl;
+      try {
+        final ref = _storage.ref().child(
+          'reports/journal_trend_report_$timestamp.pdf',
+        );
+        final uploadTask = await ref.putFile(file);
+        uploadedUrl = await uploadTask.ref.getDownloadURL();
+      } catch (_) {
+        // Storage upload failed (likely need Blaze plan) — use local path
+      }
+
+      return ProfileFirebaseResult(
+        success: true,
+        message: uploadedUrl != null
+            ? 'Report uploaded successfully.'
+            : 'Report saved locally at:\n$filePath',
+        url: uploadedUrl ?? filePath,
+      );
+    } catch (error) {
+      return ProfileFirebaseResult(
+        success: false,
+        message: 'Unable to export the report. $error',
+      );
+    }
+  }
+
+  @Deprecated('Use exportPdfReport instead')
   Future<ProfileFirebaseResult> exportAndUploadReport(String reportText) async {
     try {
       final directory = await getTemporaryDirectory();
