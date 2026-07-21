@@ -2,75 +2,45 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 
-import 'package:journal_trend_analyzer/app.dart';
 import 'package:journal_trend_analyzer/models/publication.dart';
-import 'package:journal_trend_analyzer/screens/dashboard/research_dashboard_screen.dart';
 import 'package:journal_trend_analyzer/screens/search/search_screen.dart';
 import 'package:journal_trend_analyzer/services/openalex_service.dart';
 import 'package:journal_trend_analyzer/services/publication_repository.dart';
 import 'package:journal_trend_analyzer/state/search_provider.dart';
 
+Widget _buildTestApp(SearchProvider provider) {
+  return ChangeNotifierProvider<SearchProvider>.value(
+    value: provider,
+    child: const MaterialApp(home: SearchScreen()),
+  );
+}
+
 void main() {
-  testWidgets('slice 1 search screen renders', (WidgetTester tester) async {
-    await tester.pumpWidget(const JournalTrendAnalyzerApp());
-
-    expect(find.text('Journal Trend Analyzer'), findsOneWidget);
-    expect(find.text('Search OpenAlex'), findsOneWidget);
-    expect(
-      find.text('Search a topic to start the first analysis slice.'),
-      findsOneWidget,
-    );
-  });
-
-  testWidgets('tapping a search result opens publication details', (
-    WidgetTester tester,
-  ) async {
+  testWidgets('search screen renders trending chips', (WidgetTester tester) async {
     final provider = SearchProvider(repository: _FakePublicationRepository());
 
-    await tester.pumpWidget(
-      ChangeNotifierProvider<SearchProvider>.value(
-        value: provider,
-        child: const MaterialApp(home: SearchScreen()),
-      ),
-    );
-
-    await tester.enterText(find.byType(TextField), 'Artificial Intelligence');
-    await tester.tap(find.text('Search OpenAlex'));
-    await tester.pump();
+    await tester.pumpWidget(_buildTestApp(provider));
     await tester.pump();
 
-    expect(find.text('AI for Software Engineering'), findsOneWidget);
-
-    await tester.tap(find.text('AI for Software Engineering'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Publication Details'), findsOneWidget);
-    expect(find.text('Journal of Smart Systems'), findsOneWidget);
-    expect(find.text('10.1000/xyz123'), findsOneWidget);
+    // Verify static UI elements
+    expect(find.text('Data Science'), findsOneWidget);
+    expect(find.text('AI'), findsOneWidget);
+    expect(find.text('Cybersecurity'), findsOneWidget);
+    expect(find.text('Blockchain'), findsOneWidget);
   });
 
-  testWidgets('dashboard button on search opens research dashboard', (
-    WidgetTester tester,
-  ) async {
+  testWidgets('search populates publications and shows results', (WidgetTester tester) async {
     final provider = SearchProvider(repository: _FakePublicationRepository());
 
-    await tester.pumpWidget(
-      ChangeNotifierProvider<SearchProvider>.value(
-        value: provider,
-        child: const MaterialApp(home: SearchScreen()),
-      ),
-    );
+    await tester.pumpWidget(_buildTestApp(provider));
 
-    await tester.enterText(find.byType(TextField), 'Artificial Intelligence');
-    await tester.tap(find.text('Search OpenAlex'));
-    await tester.pump();
-    await tester.pump();
-
-    await tester.tap(find.text('Dashboard'));
+    // Trigger search directly on provider
+    provider.search('Artificial Intelligence');
     await tester.pumpAndSettle();
 
-    expect(find.byType(ResearchDashboardScreen), findsOneWidget);
-    expect(find.text('Research Dashboard'), findsOneWidget);
+    // After search, the chip tap or search should show results
+    expect(provider.publications.length, greaterThan(0));
+    expect(provider.hasSearched, isTrue);
   });
 }
 

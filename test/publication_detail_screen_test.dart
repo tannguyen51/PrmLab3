@@ -24,6 +24,7 @@ void main() {
         home: PublicationDetailScreen(publication: publication),
       ),
     );
+    await tester.pump();
 
     expect(find.text('Publication Details'), findsOneWidget);
     expect(find.text('AI for Software Engineering'), findsOneWidget);

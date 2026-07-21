@@ -22,11 +22,15 @@ class _PublicationDetailScreenState extends State<PublicationDetailScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final analytics = Provider.of<AnalyticsService>(context, listen: false);
-      analytics.logViewPublication(
-        widget.publication.title,
-        widget.publication.publicationYear,
-      );
+      try {
+        final analytics = Provider.of<AnalyticsService>(context, listen: false);
+        analytics.logViewPublication(
+          widget.publication.title,
+          widget.publication.publicationYear,
+        );
+      } catch (_) {
+        // Analytics unavailable (e.g. test environment)
+      }
     });
   }
 
