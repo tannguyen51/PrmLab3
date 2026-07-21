@@ -138,6 +138,20 @@ class _ProfilePageState extends State<_ProfilePage> {
 
     try {
       final pdf = pw.Document();
+      final pubs = searchProvider.publications;
+      final totalCitations = pubs.fold<int>(0, (s, p) => s + p.citationCount);
+      final avgCitations = pubs.isEmpty ? 0 : (totalCitations / pubs.length).toStringAsFixed(1);
+      final journalSet = pubs.map((p) => p.journalName).toSet()..remove('Unknown journal');
+      final authorCounts = <String, int>{};
+      for (final pub in pubs) {
+        for (final name in pub.authorNames) {
+          authorCounts[name] = (authorCounts[name] ?? 0) + 1;
+        }
+      }
+      final sortedAuthors = authorCounts.entries.toList()
+        ..sort((a, b) => b.value.compareTo(a.value));
+      final topAuthor = sortedAuthors.isNotEmpty ? sortedAuthors.first : null;
+
       pdf.addPage(
         pw.Page(
           build: (pw.Context context) {
@@ -152,18 +166,27 @@ class _ProfilePageState extends State<_ProfilePage> {
                   ),
                 ),
                 pw.SizedBox(height: 12),
-                pw.Text(
-                  'Topic: ${searchProvider.currentTopic.isEmpty ? 'No topic yet' : searchProvider.currentTopic}',
-                ),
-                pw.Text('Publications: ${searchProvider.publications.length}'),
-                pw.Text(
-                  'Journals discovered: ${searchProvider.publications.map((publication) => publication.journalName).toSet().length}',
-                ),
+                pw.Paragraph(text: 'Topic: ${searchProvider.currentTopic.isEmpty ? 'No topic yet' : searchProvider.currentTopic}'),
+                pw.SizedBox(height: 8),
+                pw.Header(level: 2, text: 'Publication Statistics'),
+                pw.Paragraph(text: 'Total publications: ${pubs.length}'),
+                pw.Paragraph(text: 'Total citations: $totalCitations'),
+                pw.Paragraph(text: 'Average citations: $avgCitations'),
+                pw.Paragraph(text: 'Journals discovered: ${journalSet.length}'),
+                pw.SizedBox(height: 8),
+                pw.Header(level: 2, text: 'Top Contributors'),
+                pw.Paragraph(text: 'Leading journal: ${journalSet.isNotEmpty ? journalSet.first : 'N/A'}'),
+                pw.Paragraph(text: 'Top author: ${topAuthor != null ? '${topAuthor.key} (${topAuthor.value} papers)' : 'N/A'}'),
+                pw.SizedBox(height: 8),
+                if (pubs.isNotEmpty) ...[
+                  pw.Header(level: 2, text: 'Sample Publications'),
+                  ...pubs.take(5).map((pub) => pw.Paragraph(text: '• ${pub.title}')),
+                ],
                 pw.SizedBox(height: 12),
-                pw.Text('Sample publications:'),
-                ...searchProvider.publications
-                    .take(3)
-                    .map((publication) => pw.Text('- ${publication.title}')),
+                pw.Paragraph(
+                  text: 'Generated on ${DateTime.now().toString().substring(0, 19)}',
+                  style: const pw.TextStyle(fontSize: 10),
+                ),
               ],
             );
           },
